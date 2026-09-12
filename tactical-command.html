@@ -88,6 +88,11 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 .deploy-btn:disabled{ opacity:0.4; cursor:not-allowed; }
 
 .briefing-footer{ text-align:center; margin-top:24px; font-size:12px; color:var(--parchment-dim); opacity:0.7; }
+.reset-progress-btn{
+  margin-top:8px; background:none; border:none; color:var(--parchment-dim);
+  font-size:11px; text-decoration:underline; cursor:pointer; opacity:0.8; padding:4px;
+}
+.reset-progress-btn:hover{ color:var(--rust); opacity:1; }
 
 .mute-btn{
   position:fixed; top:12px; right:12px; z-index:200;
@@ -349,7 +354,10 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
     <div class="mission-panel" id="mission-panel">
       <div class="mission-panel-empty">Select an operation on the map to view its briefing.</div>
     </div>
-    <div class="briefing-footer">A tribute to those who served — simplified for gameplay, not a historical simulation.</div>
+    <div class="briefing-footer">
+      A tribute to those who served — simplified for gameplay, not a historical simulation.
+      <br><button class="reset-progress-btn" id="btn-reset-progress">Reset Campaign Progress</button>
+    </div>
   </section>
 
   <button class="mute-btn" id="btn-mute" title="Toggle music">&#128266;</button>
@@ -628,8 +636,9 @@ const Music = (function(){
     const {pan, muffle} = panMuffleForWorldX(worldX);
     const t = c.currentTime;
     const atten = 1-muffle*0.6;
-    if(kind==='rifle'){
-      noiseHit(t, {freq:2200-muffle*900, dur:0.07, vol:0.3*atten, pan});
+    if(kind==='infantry'){
+      noiseHit(t, {freq:2400-muffle*900, dur:0.065, vol:0.32*atten, pan});
+      toneThump(t, {freq:160, dur:0.1, vol:0.17*atten, pan});
     } else if(kind==='mg'){
       for(let i=0;i<3;i++) noiseHit(t+i*0.045, {freq:2000-muffle*800, dur:0.06, vol:0.24*atten, pan});
     } else if(kind==='sniper'){
@@ -721,9 +730,19 @@ const Music = (function(){
     osc.start(t); osc.stop(t+duration+0.05);
   }
 
+  function playTankMove(worldX){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan, muffle} = panMuffleForWorldX(worldX);
+    const atten = 1-muffle*0.6;
+    const t = c.currentTime;
+    toneThump(t, {freq:55, dur:0.35, vol:0.14*atten, pan});
+    toneThump(t+0.12, {freq:46, dur:0.3, vol:0.1*atten, pan});
+    noiseHit(t, {freq:400-muffle*150, dur:0.18, vol:0.08*atten, pan, type:'lowpass'});
+  }
+
   return {
     start, stop, ensureCtx, setMuted, isMuted, toggleMuted,
-    playShot, playGrenade, playExplosion, playArtillery, playDistantRumble, playPlaneDrone, playBoatDrone
+    playShot, playGrenade, playExplosion, playArtillery, playDistantRumble, playPlaneDrone, playBoatDrone, playTankMove
   };
 })();
 
@@ -734,7 +753,7 @@ const UNIT_TYPES = {
   mg:        { key:'mg',        abbr:'MG', label:'Machine Gun Team', cost:32, hp:54,  dmg:9,  range:190, atkInterval:0.42, speed:15, cooldown:3.6, accuracy:0.80, manCount:2, canGarrison:true },
   sniper:    { key:'sniper',    abbr:'SN', label:'Sniper',           cost:48, hp:20,  dmg:28, range:260, atkInterval:2.1,  speed:18, cooldown:6.2, accuracy:0.90, manCount:1, canGarrison:true },
   artillery: { key:'artillery', abbr:'AR', label:'Artillery Battery',cost:60, hp:26,  dmg:22, range:320, atkInterval:1.7,  speed:10, cooldown:6.6, accuracy:0.50, manCount:1, splash:26, splashRatio:0.5, canGarrison:false },
-  tank:      { key:'tank',      abbr:'TK', label:'Armor',            cost:80, hp:150, dmg:17, range:170, atkInterval:0.75, speed:22, cooldown:8.5, accuracy:0.75, manCount:0, canGarrison:false },
+  tank:      { key:'tank',      abbr:'TK', label:'Armor',            cost:120, hp:150, dmg:17, range:170, atkInterval:0.75, speed:22, cooldown:8.5, accuracy:0.75, manCount:0, canGarrison:false },
 };
 const UNIT_ORDER = ['infantry','mg','sniper','artillery','tank'];
 const VEHICLE_STALL_DURATION = 3.0;
@@ -742,6 +761,7 @@ const SUPPRESS_DURATION = 3.5;
 const SUPPRESS_RANGE_BONUS = 55;
 const SUPPRESS_MOVE_MULT = 0.4;
 const CONVOY_FOLLOW_OFFSET = 50;
+const CONVOY_GOAL_FRAC = 0.78;
 
 const TRENCH_JOIN_RADIUS = 24;
 const TRENCH_RANGE_BONUS = 25;
@@ -886,8 +906,11 @@ const ENV = {
       {t:'palm', f:0.5},
       {t:'trench', f:0.58, w:70},
       {t:'bunker', f:0.68},
-      {t:'palm', f:0.76}, {t:'palm', f:0.84},
-      {t:'trench', f:0.92, w:60},
+      {t:'palm', f:0.76},
+      {t:'bunker', f:0.83},
+      {t:'trench', f:0.88, w:70},
+      {t:'wall', f:0.93, w:60},
+      {t:'bunker', f:0.97},
     ]
   },
   'stalingrad': {
@@ -962,7 +985,7 @@ const MISSIONS = [
     mode:'escort', laneLength:1000, playerBaseHp:200,
     startSupply:32, supplyRate:5.6, enemySupplyRate:6.8, enemySpawnMin:1.0, enemySpawnMax:2.0,
     enemyComposition:{infantry:.35, mg:.25, sniper:.15, artillery:.15, tank:.1}, difficulty:3,
-    convoy:{ hp:180, speed:45 } },
+    convoy:{ hp:540, speed:18 } },
 
   { id:'stalingrad', theater:'europe', code:'Stalingrad', date:'August 1942 – February 1943', place:'Stalingrad, Soviet Union', mapX:345, mapY:230,
     brief:'The city has to hold, block by block, no matter the cost.',
@@ -1040,6 +1063,37 @@ const progress = {
   completed: new Set(),
 };
 
+const PROGRESS_KEY = 'campaign-progress';
+
+async function loadProgress(){
+  try{
+    const result = await window.storage.get(PROGRESS_KEY, false);
+    if(result && result.value){
+      const data = JSON.parse(result.value);
+      if(Array.isArray(data.unlocked)) data.unlocked.forEach(id=> progress.unlocked.add(id));
+      if(Array.isArray(data.completed)) data.completed.forEach(id=> progress.completed.add(id));
+      refreshPinStates();
+      if(selectedMissionId){
+        const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
+        if(m) renderMissionPanel(m);
+      }
+    }
+  } catch(err){
+    // No saved progress yet (or storage unavailable) — start fresh, that's fine.
+  }
+}
+
+async function saveProgress(){
+  try{
+    await window.storage.set(PROGRESS_KEY, JSON.stringify({
+      unlocked: Array.from(progress.unlocked),
+      completed: Array.from(progress.completed),
+    }), false);
+  } catch(err){
+    // Progress just won't persist this session if storage isn't available.
+  }
+}
+
 let selectedMissionId = null;
 
 function rankMarks(n){
@@ -1054,6 +1108,7 @@ function unlockNextMission(finishedId){
   if(idx>=0 && idx+1<MISSIONS.length){
     progress.unlocked.add(MISSIONS[idx+1].id);
   }
+  saveProgress();
 }
 
 function buildWarMap(){
@@ -1135,6 +1190,7 @@ function renderMissionPanel(m){
 }
 
 buildWarMap();
+loadProgress();
 
 
 /* ===================== COMMAND BAR BUILD ===================== */
@@ -1263,7 +1319,7 @@ function makeGameState(mission){
     stageIndex: 0,
     stage: mission.mode==='multistage' ? mission.stages[0] : null,
     stageStartElapsed: 0,
-    convoy: mission.mode==='escort' ? { x:36, hp:mission.convoy.hp, maxHp:mission.convoy.hp, speed:mission.convoy.speed, arrived:false } : null,
+    convoy: mission.mode==='escort' ? { x:36, hp:mission.convoy.hp, maxHp:mission.convoy.hp, speed:mission.convoy.speed, arrived:false, goalX: laneLength*CONVOY_GOAL_FRAC } : null,
     demoTarget: mission.mode==='demolition' ? { x: mission.demoTarget.frac*laneLength, hp:mission.demoTarget.hp, maxHp:mission.demoTarget.hp, destroyed:false } : null,
   };
 }
@@ -1580,7 +1636,7 @@ function deployPlayerUnit(key){
   if(G.cooldowns[key] > 0) return;
   G.supply -= u.cost;
   G.cooldowns[key] = u.cooldown;
-  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0 });
+  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0 });
 }
 
 function weightedPick(comp){
@@ -1608,7 +1664,7 @@ function aiMaybeSpawn(dt){
   const u = UNIT_TYPES[key];
   if(G.enemySupply >= u.cost){
     G.enemySupply -= u.cost;
-    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0 });
+    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0 });
   }
   G.aiTimer = (m.enemySpawnMin + Math.random()*(m.enemySpawnMax-m.enemySpawnMin)) / intensity;
 }
@@ -1620,6 +1676,8 @@ function spawnFloatText(x, text, color){
 }
 
 const COVER_DAMAGE_MULT = { trench:0.8, bunker:0.65, wall:0.85 };
+const BULLET_WEAPONS = { infantry:true, mg:true, sniper:true };
+const TANK_BULLET_RESIST = 0.3;
 
 function fireWeapon(u, target, uDef){
   let acc = uDef.accuracy;
@@ -1638,17 +1696,22 @@ function fireWeapon(u, target, uDef){
     target.suppressTimer = SUPPRESS_DURATION;
   }
 
+  const isGrenadeHit = uDef.key==='infantry' && Math.abs(u.x-target.x) < 40 && Math.random() < 0.12;
+
   if(uDef.key==='artillery'){
     Music.playArtillery(u.x, target.x, effDur);
   } else {
     Music.playShot(uDef.key, u.x);
-    if(uDef.key==='infantry' && Math.abs(u.x-target.x) < 40 && Math.random() < 0.12){
+    if(isGrenadeHit){
       Music.playGrenade(target.x);
     }
   }
 
   if(hit){
-    const dmgMult = target.inTrench ? (target.coverDmgMult || 0.8) : 1;
+    let dmgMult = target.inTrench ? (target.coverDmgMult || 0.8) : 1;
+    if(target.type==='tank' && BULLET_WEAPONS[uDef.key] && !isGrenadeHit){
+      dmgMult *= TANK_BULLET_RESIST;
+    }
     const dealt = Math.max(1, Math.round(uDef.dmg*dmgMult));
     target.hp -= dealt;
     spawnFloatText(target.x, '-'+dealt, '#ffb37a');
@@ -1669,6 +1732,15 @@ function fireWeapon(u, target, uDef){
 }
 
 /* ===================== SIMULATION ===================== */
+
+function updateTankMoveSound(u, dt){
+  if(u.moveSoundTimer===undefined) u.moveSoundTimer = Math.random()*2;
+  u.moveSoundTimer -= dt;
+  if(u.moveSoundTimer<=0){
+    Music.playTankMove(u.x);
+    u.moveSoundTimer = 1.8 + Math.random()*0.8;
+  }
+}
 
 function triggerShake(mag, dur){
   if(!G) return;
@@ -1710,6 +1782,11 @@ function step(dt){
         fireWeapon(u, target, uDef);
         u.atkTimer = uDef.atkInterval;
       }
+      if(u.suppressed && u.type==='infantry' && !u.inTrench){
+        const crawlSpeed = uDef.speed*SUPPRESS_MOVE_MULT;
+        if(u.side==='player') u.x = Math.min(G.laneLength-40, u.x + crawlSpeed*dt);
+        else u.x = Math.max(40, u.x - crawlSpeed*dt);
+      }
       continue;
     }
 
@@ -1724,7 +1801,9 @@ function step(dt){
             u.inTrench = true;
             u.trenchSlot = tr.occupants.length;
             u.coverMult = COVER_MULT[tr.type];
-            u.rangeBonus = COVER_RANGE_BONUS[tr.type];
+            u.rangeBonus = (u.type==='infantry' && tr.type==='trench')
+              ? Math.max(COVER_RANGE_BONUS[tr.type], UNIT_TYPES.mg.range - uDef.range)
+              : COVER_RANGE_BONUS[tr.type];
             u.coverDmgMult = COVER_DAMAGE_MULT[tr.type];
             u.x = tr.x;
             tr.occupants.push(u.id);
@@ -1760,6 +1839,7 @@ function step(dt){
         if(currentPhaseType()==='assault') G.enemyBase.hp -= uDef.dmg*dt*1.4;
       } else {
         u.x += moveSpeed*dt;
+        if(u.type==='tank') updateTankMoveSound(u, dt);
       }
     } else {
       if(G.mission.mode==='escort' && G.convoy && !G.convoy.arrived && Math.abs(u.x-G.convoy.x) <= 30){
@@ -1768,6 +1848,7 @@ function step(dt){
         G.playerBase.hp -= uDef.dmg*dt*1.4;
       } else {
         u.x -= moveSpeed*dt;
+        if(u.type==='tank') updateTankMoveSound(u, dt);
       }
     }
   }
@@ -1818,7 +1899,7 @@ function step(dt){
   });
 
   if(G.mission.mode==='escort' && G.convoy && !G.convoy.arrived && G.convoy.hp>0){
-    const arriveX = G.laneLength-30;
+    const arriveX = G.convoy.goalX;
     const targetX = Math.min(arriveX, Math.max(G.convoy.x, G.frontLine - CONVOY_FOLLOW_OFFSET));
     if(targetX > G.convoy.x){
       G.convoy.x = Math.min(targetX, G.convoy.x + G.convoy.speed*dt);
@@ -2645,6 +2726,19 @@ function drawBase(cx, groundY, colorFront, colorTop, colorSide, label){
   ctx.fillText(label, cx, groundY-20);
 }
 
+function drawConvoyGoalMarker(x, groundY, reached){
+  ctx.strokeStyle = '#201f19'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x, groundY+26); ctx.lineTo(x, groundY-34); ctx.stroke();
+  ctx.fillStyle = reached ? '#79883a' : '#b8933c';
+  ctx.beginPath();
+  ctx.moveTo(x, groundY-34); ctx.lineTo(x+18, groundY-27); ctx.lineTo(x, groundY-20); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle='#eee5c4';
+  ctx.font='10px Archivo, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('SAFE GROUND', x, groundY-40);
+}
+
 function drawConvoySprite(x, groundY, hpPct){
   drawShadow(x, groundY+13, 20, 4);
   const pat = ensurePatterns();
@@ -2790,6 +2884,7 @@ function render(){
   drawBase(laneToPx(G.laneLength,w), groundY, '#454a42', '#767e70', '#2c2f29', currentPhaseType()==='defense' ? '\u221e' : 'HQ');
 
   if(G.convoy){
+    drawConvoyGoalMarker(laneToPx(G.convoy.goalX, w), groundY, G.convoy.arrived);
     drawConvoySprite(laneToPx(G.convoy.x, w), groundY-4, Math.max(0,G.convoy.hp/G.convoy.maxHp));
   }
   if(G.demoTarget){
@@ -3020,6 +3115,18 @@ el('btn-mute').addEventListener('click', ()=>{
 
 el('cinematic-skip').addEventListener('click', ()=>{
   if(inCinematic) endCinematic();
+});
+
+el('btn-reset-progress').addEventListener('click', async ()=>{
+  if(!confirm('Reset all campaign progress? This cannot be undone.')) return;
+  progress.unlocked = new Set([MISSIONS[0].id]);
+  progress.completed = new Set();
+  try{ await window.storage.delete(PROGRESS_KEY, false); } catch(err){}
+  refreshPinStates();
+  if(selectedMissionId){
+    const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
+    if(m) renderMissionPanel(m);
+  }
 });
 
 })();
