@@ -1,0 +1,3028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tactical Command — WWII</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Staatliches&family=Archivo:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --ink:#201f19;
+  --parchment:#ddd3a8;
+  --parchment-dim:#c9bd8f;
+  --parchment-2:#eee5c4;
+  --olive:#49531f;
+  --olive-light:#79883a;
+  --gunmetal:#454a42;
+  --gunmetal-light:#767e70;
+  --rust:#a13d2b;
+  --brass:#b8933c;
+  --panel:#2a2820;
+  --panel-2:#332f24;
+  --line: rgba(221,211,168,0.28);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background: radial-gradient(ellipse at 50% -10%, #302c1f 0%, #17150f 65%, #100f0b 100%);
+  color:var(--parchment);
+  font-family:'Archivo',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+h1,h2,h3,.stencil{ font-family:'Staatliches', sans-serif; letter-spacing:0.02em; font-weight:400; }
+button{ font-family:'Archivo',sans-serif; cursor:pointer; }
+.screen{ display:none; min-height:100vh; }
+.screen.active{ display:block; }
+
+/* ---------- BRIEFING SCREEN ---------- */
+#screen-briefing{ padding: 32px 24px 60px; max-width:1180px; margin:0 auto; }
+.briefing-header{ text-align:center; margin-bottom:28px; }
+.briefing-header h1{ font-size:clamp(42px,7vw,72px); margin:0 0 6px; color:var(--parchment-2); text-shadow:0 2px 0 rgba(0,0,0,0.5); }
+.briefing-header p{ color:var(--parchment-dim); font-size:16px; max-width:560px; margin:0 auto; line-height:1.5; }
+
+.war-map-wrap{
+  position:relative; width:100%; max-width:1100px; margin:0 auto;
+  border:1px solid var(--line); background:#1c2b30;
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+#war-map-svg{ width:100%; height:auto; display:block; }
+.theater-label{ font-family:'Staatliches',sans-serif; font-size:22px; fill:rgba(221,211,168,0.55); letter-spacing:0.08em; }
+.campaign-line{ fill:none; stroke:rgba(221,211,168,0.55); stroke-width:2; stroke-dasharray:7,6; }
+.map-pin{ cursor:pointer; }
+.map-pin .pin-badge{ fill:var(--brass); stroke:#201f19; stroke-width:2; }
+.map-pin .pin-num{ fill:#201f19; font-size:20px; font-weight:800; font-family:'Archivo',sans-serif; text-anchor:middle; }
+.map-pin .pin-label{ fill:var(--parchment-2); font-family:'Staatliches',sans-serif; font-size:19px; letter-spacing:0.02em; }
+.map-pin .pin-label-bg{ fill:rgba(20,19,14,0.55); }
+.map-pin:hover .pin-badge{ fill:var(--olive-light); }
+.map-pin.selected .pin-badge{ fill:var(--rust); }
+.map-pin.locked{ cursor:not-allowed; }
+.map-pin.locked .pin-badge{ fill:#5a564a; }
+.map-pin.locked .pin-num{ fill:rgba(238,229,196,0.5); }
+.map-pin.locked .pin-label{ fill:rgba(221,211,168,0.4); }
+.map-pin.completed .pin-badge{ fill:var(--olive-light); }
+.map-pin .pin-check{ fill:#eee5c4; font-size:15px; text-anchor:middle; font-weight:800; }
+
+.mission-panel{
+  max-width:1100px; margin:18px auto 0; min-height:120px;
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line); border-left:5px solid var(--olive);
+  padding:20px 22px; display:flex; flex-direction:column; gap:8px;
+}
+.mission-panel-empty{ color:var(--parchment-dim); font-size:14px; text-align:center; padding:20px 0; }
+.mission-panel .place-date{ font-size:12px; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.08em; }
+.mission-panel h2{ font-size:30px; margin:2px 0 4px; color:var(--parchment-2); line-height:1.05; }
+.mission-panel .brief-text{ font-size:14px; line-height:1.5; color:var(--parchment); opacity:0.92; max-width:640px; }
+.mission-panel .meta-row{ display:flex; align-items:center; justify-content:space-between; margin-top:4px; flex-wrap:wrap; gap:10px; }
+.rank-marks{ font-size:13px; color:var(--brass); letter-spacing:2px; }
+.mode-tag{ font-size:11px; padding:3px 8px; border:1px solid var(--line); text-transform:uppercase; letter-spacing:0.06em; color:var(--parchment-dim); }
+.lock-note{ font-size:12px; color:var(--parchment-dim); font-style:italic; }
+.deploy-btn{
+  margin-top:6px; background:var(--olive); color:var(--parchment-2); border:1px solid rgba(0,0,0,0.3);
+  padding:11px 14px; font-size:14px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+  align-self:flex-start;
+}
+.deploy-btn:hover{ background:var(--olive-light); }
+.deploy-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+.briefing-footer{ text-align:center; margin-top:24px; font-size:12px; color:var(--parchment-dim); opacity:0.7; }
+
+.mute-btn{
+  position:fixed; top:12px; right:12px; z-index:200;
+  width:38px; height:38px; border-radius:50%;
+  background:rgba(20,19,14,0.6); border:1px solid var(--line); color:var(--parchment-2);
+  font-size:16px; cursor:pointer;
+}
+.mute-btn:hover{ background:rgba(73,83,31,0.65); }
+
+/* ---------- GAME SCREEN ---------- */
+#screen-game{ display:none; flex-direction:column; height:100vh; }
+#screen-game.active{ display:flex; }
+
+.hud{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  background:var(--panel); border-bottom:1px solid var(--line);
+  padding:10px 18px; flex-wrap:wrap;
+}
+.hud-left{ display:flex; align-items:center; gap:14px; }
+.hud-title{ font-size:22px; color:var(--parchment-2); }
+.hud-sub{ font-size:11px; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.06em; }
+.hud-mid{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+.stat{ display:flex; flex-direction:column; align-items:center; min-width:60px; }
+.stat .num{ font-size:18px; font-weight:700; }
+.stat .lbl{ font-size:10px; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.05em; }
+.stat.supply .num{ color:var(--brass); }
+.stat.timer .num{ color:var(--rust); }
+.hp-bar-wrap{ width:100px; }
+.hp-bar-outer{ height:8px; background:rgba(0,0,0,0.4); border:1px solid var(--line); }
+.hp-bar-inner{ height:100%; background:var(--olive-light); transition:width .2s; }
+.hp-bar-inner.enemy{ background:var(--gunmetal-light); }
+.hud-right{ display:flex; gap:8px; }
+.icon-btn{ background:var(--panel-2); border:1px solid var(--line); color:var(--parchment); padding:8px 12px; font-size:13px; }
+.icon-btn:hover{ background:var(--gunmetal); }
+
+.battlefield-wrap{ flex:1; position:relative; overflow:hidden; }
+#battlefield{ width:100%; height:100%; display:block; cursor:grab; touch-action:none; }
+#battlefield:active{ cursor:grabbing; }
+.battlefield-wrap::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 48%, rgba(0,0,0,0.4) 100%);
+}
+.battlefield-wrap::before{
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background: linear-gradient(180deg, rgba(60,58,44,0.14), rgba(20,22,18,0.22));
+  mix-blend-mode:multiply;
+}
+
+.minimap-bar{
+  display:flex; align-items:stretch; height:22px; background:var(--panel);
+  border-bottom:1px solid var(--line);
+}
+.minimap-endcap{ width:26px; flex-shrink:0; }
+.minimap-endcap.allied{ background:var(--olive); }
+.minimap-endcap.axis{ background:var(--gunmetal); }
+#minimap{ flex:1; width:100%; height:100%; display:block; cursor:pointer; }
+
+.cam-nav{
+  position:absolute; top:50%; transform:translateY(-50%); z-index:8;
+  width:38px; height:52px; background:rgba(20,19,14,0.5); border:1px solid var(--line);
+  color:var(--parchment-2); font-size:24px; line-height:1; cursor:pointer;
+}
+.cam-nav:hover{ background:rgba(73,83,31,0.65); }
+.cam-nav-left{ left:8px; }
+.cam-nav-right{ right:8px; }
+.cam-home{
+  position:absolute; top:44px; left:50%; transform:translateX(-50%); z-index:8;
+  background:rgba(20,19,14,0.6); border:1px solid var(--line); color:var(--parchment);
+  font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:5px 12px;
+  cursor:pointer;
+}
+.cam-home:hover{ background:rgba(73,83,31,0.65); }
+
+.objective-progress{ position:absolute; top:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:2; }
+.objective-pip{ width:14px; height:14px; border:1px solid var(--brass); background:transparent; }
+.objective-pip.done{ background:var(--brass); }
+
+.command-bar{
+  display:flex; gap:9px; padding:12px 14px; background:var(--panel); border-top:1px solid var(--line);
+  overflow-x:auto;
+}
+.unit-btn{
+  position:relative; flex:1; min-width:118px; max-width:180px;
+  background:var(--panel-2); border:1px solid var(--line); color:var(--parchment);
+  padding:9px 10px; display:flex; flex-direction:column; gap:3px; text-align:left; overflow:hidden;
+}
+.unit-btn .row1{ display:flex; align-items:center; gap:7px; }
+.unit-chip{ width:28px; height:22px; border:1.5px solid var(--olive-light); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; background:rgba(73,83,31,0.25); flex-shrink:0; }
+.unit-name{ font-size:12.5px; font-weight:700; }
+.unit-cost{ font-size:11.5px; color:var(--brass); }
+.unit-acc{ font-size:10px; color:var(--parchment-dim); }
+.unit-range{ font-size:10px; color:var(--parchment-dim); opacity:0.85; }
+.unit-key{ position:absolute; top:6px; right:8px; font-size:10px; color:var(--parchment-dim); border:1px solid var(--line); padding:1px 5px; }
+.cooldown-veil{ position:absolute; left:0; bottom:0; width:100%; background:rgba(10,10,8,0.72); transition:height .08s linear; }
+.unit-btn:disabled{ opacity:0.45; cursor:not-allowed; }
+.unit-btn:not(:disabled):hover{ border-color:var(--brass); }
+
+/* ---------- OVERLAYS ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(10,9,6,0.86); display:none;
+  align-items:center; justify-content:center; z-index:50; padding:20px;
+}
+.overlay.active{ display:flex; }
+.overlay-card{
+  background:var(--panel); border:1px solid var(--line); padding:36px 40px; max-width:420px; width:100%; text-align:center;
+}
+.overlay-card h2{ font-size:44px; margin:0 0 6px; }
+.overlay-card h2.win{ color:var(--brass); }
+.overlay-card h2.lose{ color:var(--rust); }
+.overlay-card .desc{ font-size:14px; color:var(--parchment-dim); margin-bottom:20px; line-height:1.5;}
+.overlay-stats{ display:flex; justify-content:center; gap:26px; margin-bottom:24px; }
+.overlay-stats .stat .num{ font-size:20px; }
+.overlay-actions{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.overlay-actions button{ padding:11px 18px; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; border:1px solid var(--line); background:var(--panel-2); color:var(--parchment); }
+.overlay-actions button.primary{ background:var(--olive); }
+.overlay-actions button.primary:hover{ background:var(--olive-light); }
+.overlay-actions button:hover{ background:var(--gunmetal); }
+
+.hint-banner{
+  position:absolute; bottom:70px; left:50%; transform:translateX(-50%);
+  background:rgba(20,19,14,0.88); border:1px solid var(--line); padding:8px 16px; font-size:12px;
+  color:var(--parchment-dim); max-width:90%; text-align:center; z-index:10;
+}
+
+.cinematic-overlay{
+  display:none; position:absolute; inset:0; z-index:40; pointer-events:none;
+  flex-direction:column; justify-content:space-between;
+}
+.cinematic-top{
+  display:flex; align-items:flex-start; justify-content:space-between; padding:18px 20px;
+}
+.cinematic-title{
+  font-size:26px; color:var(--parchment-2); text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  background:rgba(15,14,11,0.4); padding:6px 14px;
+}
+.cinematic-skip{
+  pointer-events:auto; background:rgba(20,19,14,0.55); border:1px solid var(--line); color:var(--parchment);
+  padding:8px 14px; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer;
+}
+.cinematic-skip:hover{ background:rgba(73,83,31,0.65); }
+.cinematic-caption{
+  margin:0 auto 60px; max-width:640px; padding:16px 22px; text-align:center;
+  background:rgba(12,11,8,0.6); border:1px solid var(--line); color:var(--parchment-2);
+  font-size:16px; line-height:1.5; opacity:0; transition:opacity 0.7s ease;
+}
+.cinematic-caption.show{ opacity:1; }
+
+body.cinematic-mode .hud,
+body.cinematic-mode .minimap-bar,
+body.cinematic-mode .command-bar,
+body.cinematic-mode .objective-progress,
+body.cinematic-mode .trench-controls,
+body.cinematic-mode .cover-locks,
+body.cinematic-mode .cam-nav,
+body.cinematic-mode .cam-home,
+body.cinematic-mode .hint-banner{
+  display:none !important;
+}
+body.cinematic-mode .cinematic-overlay{ display:flex; }
+
+.trench-controls{ position:absolute; inset:0; pointer-events:none; z-index:6; }
+.trench-btn{
+  position:absolute; transform:translate(-50%,-100%);
+  pointer-events:auto; cursor:pointer;
+  background:var(--panel-2); border:1px solid var(--brass); color:var(--parchment-2);
+  font-size:11px; font-weight:700; padding:4px 9px; white-space:nowrap; letter-spacing:0.02em;
+  box-shadow:0 2px 0 rgba(0,0,0,0.35);
+}
+.trench-btn:hover{ background:var(--olive); border-color:var(--parchment-2); }
+.trench-btn:active{ transform:translate(-50%,-100%) scale(0.95); }
+
+.cover-locks{ position:absolute; inset:0; pointer-events:none; z-index:7; }
+.lock-btn{
+  position:absolute; transform:translate(-50%,-100%);
+  pointer-events:auto; cursor:pointer;
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(20,19,14,0.55); border:1px solid var(--line); color:var(--parchment-2);
+  font-size:13px; line-height:1; display:flex; align-items:center; justify-content:center;
+}
+.lock-btn:hover{ border-color:var(--brass); }
+.lock-btn.locked{ background:rgba(161,61,43,0.55); border-color:var(--rust); }
+
+@media (max-width:720px){
+  .hud{ flex-direction:column; align-items:stretch; gap:8px; }
+  .hud-mid{ justify-content:space-between; }
+  .unit-btn{ min-width:92px; padding:7px; }
+  .unit-name{ font-size:11px; }
+}
+</style>
+</head>
+<body>
+
+<div id="root">
+
+  <!-- ============ BRIEFING SCREEN ============ -->
+  <section id="screen-briefing" class="screen active">
+    <div class="briefing-header">
+      <h1>Tactical Command</h1>
+      <p>Six operations, two theaters. Manage supply, engage at range with infantry, machine guns, snipers, artillery and armor — then dig into trenches and hold what you take. Win an operation to open the next on the map.</p>
+    </div>
+    <div class="war-map-wrap">
+      <svg id="war-map-svg" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="oceanGrad" cx="50%" cy="40%" r="75%">
+            <stop offset="0%" stop-color="#2a4550"/>
+            <stop offset="100%" stop-color="#152229"/>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="1000" height="560" fill="url(#oceanGrad)"/>
+        <g stroke="rgba(221,211,168,0.06)" stroke-width="1">
+          <line x1="0" y1="140" x2="1000" y2="140"/>
+          <line x1="0" y1="280" x2="1000" y2="280"/>
+          <line x1="0" y1="420" x2="1000" y2="420"/>
+          <line x1="250" y1="0" x2="250" y2="560"/>
+          <line x1="500" y1="0" x2="500" y2="560"/>
+          <line x1="750" y1="0" x2="750" y2="560"/>
+        </g>
+
+        <!-- Britain -->
+        <ellipse cx="110" cy="95" rx="46" ry="28" fill="#5d6b3c" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+
+        <!-- European / Eastern Front theater landmass -->
+        <path d="M 55,150 L 260,108 L 340,120 L 400,160 L 412,232 L 350,262 L 320,330 L 210,385 L 95,345 L 45,250 Z"
+              fill="#5d6b3c" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+        <text x="70" y="105" class="theater-label">EUROPEAN THEATER</text>
+
+        <!-- North Africa -->
+        <path d="M 90,440 L 320,428 L 342,468 L 300,512 L 120,516 L 78,480 Z"
+              fill="#c9a866" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+        <text x="95" y="410" class="theater-label" font-size="18">AFRICAN THEATER</text>
+
+        <!-- Pacific theater landmasses -->
+        <ellipse cx="700" cy="305" rx="34" ry="20" fill="#8a7a4a" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+        <ellipse cx="668" cy="292" rx="10" ry="7" fill="#8a7a4a" stroke="#22261a" stroke-width="1.5" opacity="0.9"/>
+        <ellipse cx="775" cy="185" rx="16" ry="10" fill="none" stroke="#8a7a4a" stroke-width="3" opacity="0.85"/>
+        <ellipse cx="830" cy="460" rx="32" ry="19" fill="#4a6b3a" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+        <path d="M 855,255 L 940,240 L 965,300 L 950,360 L 965,420 L 920,440 L 890,380 L 870,320 Z"
+              fill="#5c5648" stroke="#22261a" stroke-width="2" opacity="0.9"/>
+        <text x="800" y="105" class="theater-label">PACIFIC THEATER</text>
+
+        <!-- campaign progression lines (within each theater leg) -->
+        <path d="M 700,300 L 775,185" class="campaign-line"/>
+        <path d="M 900,345 L 935,410" class="campaign-line"/>
+        <path d="M 150,270 L 230,140" class="campaign-line"/>
+        <path d="M 230,140 L 265,195" class="campaign-line"/>
+        <path d="M 345,230 L 370,175" class="campaign-line"/>
+
+        <!-- compass rose -->
+        <g transform="translate(60,490)" stroke="rgba(221,211,168,0.35)" fill="none" stroke-width="1.5">
+          <circle r="26"/>
+          <line x1="0" y1="-26" x2="0" y2="26"/>
+          <line x1="-26" y1="0" x2="26" y2="0"/>
+          <text x="-4" y="-30" fill="rgba(221,211,168,0.5)" font-size="12" stroke="none">N</text>
+        </g>
+
+        <g id="map-pins"></g>
+      </svg>
+    </div>
+    <div class="mission-panel" id="mission-panel">
+      <div class="mission-panel-empty">Select an operation on the map to view its briefing.</div>
+    </div>
+    <div class="briefing-footer">A tribute to those who served — simplified for gameplay, not a historical simulation.</div>
+  </section>
+
+  <button class="mute-btn" id="btn-mute" title="Toggle music">&#128266;</button>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <section id="screen-game" class="screen">
+    <div class="hud">
+      <div class="hud-left">
+        <div>
+          <div class="hud-title" id="hud-title">—</div>
+          <div class="hud-sub" id="hud-sub">—</div>
+        </div>
+      </div>
+      <div class="hud-mid">
+        <div class="stat supply"><div class="num" id="stat-supply">0</div><div class="lbl">Supply</div></div>
+        <div>
+          <div class="lbl" style="margin-bottom:3px;">Allied HQ</div>
+          <div class="hp-bar-wrap"><div class="hp-bar-outer"><div class="hp-bar-inner" id="bar-player" style="width:100%;"></div></div></div>
+        </div>
+        <div id="enemy-hp-block">
+          <div class="lbl" id="enemy-hp-label" style="margin-bottom:3px;">Enemy HQ</div>
+          <div class="hp-bar-wrap"><div class="hp-bar-outer"><div class="hp-bar-inner enemy" id="bar-enemy" style="width:100%;"></div></div></div>
+        </div>
+        <div class="stat timer" id="timer-block" style="display:none;"><div class="num" id="stat-timer">0:00</div><div class="lbl" id="timer-label">Hold</div></div>
+      </div>
+      <div class="hud-right">
+        <button class="icon-btn" id="btn-pause">Pause</button>
+        <button class="icon-btn" id="btn-quit">Withdraw</button>
+      </div>
+    </div>
+
+    <div class="minimap-bar">
+      <div class="minimap-endcap allied"></div>
+      <canvas id="minimap"></canvas>
+      <div class="minimap-endcap axis"></div>
+    </div>
+
+    <div class="battlefield-wrap">
+      <canvas id="battlefield"></canvas>
+      <button class="cam-nav cam-nav-left" id="cam-left" title="Pan toward your lines">&#8249;</button>
+      <button class="cam-nav cam-nav-right" id="cam-right" title="Pan toward enemy lines">&#8250;</button>
+      <button class="cam-home" id="cam-home" title="Return to your lines">My Lines</button>
+      <div class="objective-progress" id="objective-progress"></div>
+      <div class="trench-controls" id="trench-controls"></div>
+      <div class="cover-locks" id="cover-locks"></div>
+      <div class="hint-banner" id="hint-banner" style="display:none;"></div>
+
+      <div class="cinematic-overlay" id="cinematic-overlay">
+        <div class="cinematic-top">
+          <div class="cinematic-title" id="cinematic-title">—</div>
+          <button class="cinematic-skip" id="cinematic-skip">Skip Intro &#9654;</button>
+        </div>
+        <div class="cinematic-caption" id="cinematic-caption"></div>
+      </div>
+    </div>
+
+    <div class="command-bar" id="command-bar"></div>
+  </section>
+
+</div>
+
+<!-- ============ OVERLAYS ============ -->
+<div class="overlay" id="overlay-pause">
+  <div class="overlay-card">
+    <h2>Paused</h2>
+    <div class="desc">The front holds while you catch your breath.</div>
+    <div class="overlay-actions">
+      <button class="primary" id="btn-resume">Resume</button>
+      <button id="btn-pause-quit">Withdraw to Briefing</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-result">
+  <div class="overlay-card">
+    <h2 id="result-title">—</h2>
+    <div class="desc" id="result-desc">—</div>
+    <div class="overlay-stats">
+      <div class="stat"><div class="num" id="result-time">0:00</div><div class="lbl">Time</div></div>
+      <div class="stat"><div class="num" id="result-objectives">0/0</div><div class="lbl">Objectives</div></div>
+      <div class="stat"><div class="num" id="result-losses">0</div><div class="lbl">Units Lost</div></div>
+    </div>
+    <div class="overlay-actions">
+      <button class="primary" id="btn-retry">Retry Operation</button>
+      <button id="btn-back-briefing">Briefing Room</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== AUDIO (procedural, original — no audio files) ===================== */
+/* Music (menu-only march) and sound effects (gunfire, explosions, grenades, distant
+   ambience) are both synthesized live with the Web Audio API. Nothing here is a
+   recording or based on any copyrighted piece — it's all generated tones/noise. */
+
+const Music = (function(){
+  let ctx = null, masterGain = null, musicBus = null, sfxBus = null;
+  let muted = false;
+  let currentMode = null;
+  let schedulerTimer = null;
+  let nextNoteTime = 0, beatIndex = 0, melodyIndex = 0;
+  let noiseBuf = null;
+
+  function ensureCtx(){
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      ctx = new AC();
+      masterGain = ctx.createGain();
+      masterGain.gain.value = muted ? 0 : 1;
+      masterGain.connect(ctx.destination);
+      musicBus = ctx.createGain(); musicBus.gain.value = 0.32; musicBus.connect(masterGain);
+      sfxBus = ctx.createGain(); sfxBus.gain.value = 0.55; sfxBus.connect(masterGain);
+    }
+    if(ctx.state==='suspended') ctx.resume();
+    return ctx;
+  }
+
+  function getNoise(){
+    if(noiseBuf) return noiseBuf;
+    const c = ensureCtx();
+    if(!c) return null;
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate*0.3), c.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+    noiseBuf = buf;
+    return buf;
+  }
+
+  function connectPanned(node, pan, bus){
+    if(ctx.createStereoPanner){
+      const p = ctx.createStereoPanner();
+      p.pan.value = Math.max(-1, Math.min(1, pan||0));
+      node.connect(p); p.connect(bus);
+    } else {
+      node.connect(bus);
+    }
+  }
+
+  /* ---- music percussion/melody primitives (feed musicBus) ---- */
+  function snare(time, vol){
+    const c = ensureCtx(); if(!c) return;
+    const src = c.createBufferSource();
+    src.buffer = getNoise();
+    const hp = c.createBiquadFilter();
+    hp.type='highpass'; hp.frequency.value=1600;
+    const g = c.createGain();
+    g.gain.setValueAtTime(vol, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time+0.14);
+    src.connect(hp); hp.connect(g); g.connect(musicBus);
+    src.start(time); src.stop(time+0.15);
+  }
+  function kick(time, vol){
+    const c = ensureCtx(); if(!c) return;
+    const osc = c.createOscillator();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(120,time);
+    osc.frequency.exponentialRampToValueAtTime(46, time+0.14);
+    const g = c.createGain();
+    g.gain.setValueAtTime(vol, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time+0.2);
+    osc.connect(g); g.connect(musicBus);
+    osc.start(time); osc.stop(time+0.22);
+  }
+  function brassNote(time, freq, dur, vol){
+    const c = ensureCtx(); if(!c) return;
+    const osc = c.createOscillator();
+    osc.type='sawtooth';
+    osc.frequency.value = freq;
+    const filt = c.createBiquadFilter();
+    filt.type='lowpass'; filt.frequency.value=1100;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.linearRampToValueAtTime(vol, time+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    osc.connect(filt); filt.connect(g); g.connect(musicBus);
+    osc.start(time); osc.stop(time+dur+0.02);
+  }
+
+  const MELODY = [
+    [0,2],[0,1],[3,1],[5,2],[7,2],[5,2],[3,2],[0,2],
+    [0,2],[0,1],[3,1],[5,2],[8,2],[7,2],[5,2],[3,2],
+  ];
+  const BASE_FREQ = 220;
+
+  function scheduleMenu(){
+    const c = ensureCtx(); if(!c) return;
+    const bpm = 112, beatDur = 60/bpm/2;
+    while(nextNoteTime < c.currentTime + 0.6){
+      const beatInBar = beatIndex % 8;
+      if(beatInBar===0 || beatInBar===4) kick(nextNoteTime, 0.5);
+      if(beatInBar===2 || beatInBar===6) snare(nextNoteTime, 0.32);
+      else snare(nextNoteTime, 0.05);
+      if(beatIndex % 2 === 0){
+        const [semi,len] = MELODY[melodyIndex % MELODY.length];
+        brassNote(nextNoteTime, BASE_FREQ*Math.pow(2, semi/12), beatDur*len*0.9, 0.11);
+        melodyIndex++;
+      }
+      nextNoteTime += beatDur;
+      beatIndex++;
+    }
+    schedulerTimer = setTimeout(scheduleMenu, 150);
+  }
+
+  function stop(){
+    if(schedulerTimer){ clearTimeout(schedulerTimer); schedulerTimer=null; }
+    currentMode = null;
+  }
+
+  function start(mode){
+    // Only the menu has music — missions run on sound effects and ambience alone.
+    if(mode!=='menu'){ stop(); return; }
+    if(currentMode===mode) return;
+    stop();
+    const c = ensureCtx(); if(!c) return;
+    nextNoteTime = c.currentTime + 0.1;
+    beatIndex = 0; melodyIndex = 0;
+    currentMode = mode;
+    scheduleMenu();
+  }
+
+  function setMuted(m){
+    muted = m;
+    if(masterGain) masterGain.gain.value = muted ? 0 : 1;
+  }
+  function isMuted(){ return muted; }
+  function toggleMuted(){ setMuted(!muted); return muted; }
+
+  /* ---- spatialization helpers: pan/muffle a sound based on where it happens
+     on the battlefield relative to the player's current camera view ---- */
+  function panMuffleForWorldX(worldX){
+    if(typeof G === 'undefined' || !G || !G.camera) return {pan:0, muffle:0};
+    const cam = G.camera;
+    const left = cam.x - cam.viewWidth/2;
+    const frac = (worldX-left)/cam.viewWidth;
+    const pan = Math.max(-1, Math.min(1, (frac-0.5)*2));
+    let muffle;
+    if(frac<0 || frac>1) muffle = 1;
+    else muffle = Math.max(0, (Math.abs(frac-0.5)-0.35)/0.65);
+    return { pan, muffle: Math.min(1, muffle) };
+  }
+
+  /* ---- SFX primitives (feed sfxBus) ---- */
+  function noiseHit(time, {freq=1500, dur=0.08, vol=0.3, pan=0, type='highpass'}={}){
+    const c = ensureCtx(); if(!c) return;
+    const src = c.createBufferSource();
+    src.buffer = getNoise();
+    const filt = c.createBiquadFilter();
+    filt.type = type; filt.frequency.value = Math.max(60,freq);
+    const g = c.createGain();
+    g.gain.setValueAtTime(Math.max(0.0001,vol), time);
+    g.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    src.connect(filt); filt.connect(g);
+    connectPanned(g, pan, sfxBus);
+    src.start(time); src.stop(time+dur+0.02);
+  }
+  function toneThump(time, {freq=80, dur=0.2, vol=0.3, pan=0}={}){
+    const c = ensureCtx(); if(!c) return;
+    const osc = c.createOscillator();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(freq*1.7, time);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(20,freq*0.5), time+dur*0.8);
+    const g = c.createGain();
+    g.gain.setValueAtTime(Math.max(0.0001,vol), time);
+    g.gain.exponentialRampToValueAtTime(0.001, time+dur);
+    osc.connect(g);
+    connectPanned(g, pan, sfxBus);
+    osc.start(time); osc.stop(time+dur+0.02);
+  }
+
+  function playShot(kind, worldX){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan, muffle} = panMuffleForWorldX(worldX);
+    const t = c.currentTime;
+    const atten = 1-muffle*0.6;
+    if(kind==='rifle'){
+      noiseHit(t, {freq:2200-muffle*900, dur:0.07, vol:0.3*atten, pan});
+    } else if(kind==='mg'){
+      for(let i=0;i<3;i++) noiseHit(t+i*0.045, {freq:2000-muffle*800, dur:0.06, vol:0.24*atten, pan});
+    } else if(kind==='sniper'){
+      noiseHit(t, {freq:1100-muffle*400, dur:0.12, vol:0.42*atten, pan});
+      toneThump(t, {freq:85, dur:0.16, vol:0.24*atten, pan});
+    } else if(kind==='tank'){
+      toneThump(t, {freq:65, dur:0.3, vol:0.48*atten, pan});
+      noiseHit(t, {freq:850-muffle*300, dur:0.18, vol:0.32*atten, pan});
+    }
+  }
+
+  function playGrenade(worldX){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan,muffle} = panMuffleForWorldX(worldX);
+    const t = c.currentTime, atten = 1-muffle*0.5;
+    toneThump(t, {freq:100, dur:0.22, vol:0.38*atten, pan});
+    noiseHit(t, {freq:1000-muffle*400, dur:0.16, vol:0.28*atten, pan});
+  }
+
+  function playExplosion(worldX, size){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan,muffle} = panMuffleForWorldX(worldX);
+    const big = size==='large';
+    const t = c.currentTime, atten = 1-muffle*0.4;
+    toneThump(t, {freq: big?52:75, dur: big?0.75:0.35, vol:(big?0.55:0.35)*atten, pan});
+    noiseHit(t, {freq:(big?380:700)-muffle*200, dur: big?0.65:0.3, vol:(big?0.4:0.28)*atten, pan, type:'lowpass'});
+  }
+
+  function playArtillery(originX, targetX, delay){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan,muffle} = panMuffleForWorldX(originX);
+    noiseHit(c.currentTime, {freq:600-muffle*200, dur:0.2, vol:0.12*(1-muffle*0.5), pan, type:'bandpass'});
+    setTimeout(()=> playExplosion(targetX, 'large'), Math.max(0, delay*1000));
+  }
+
+  function playDistantRumble(screenFrac){
+    const c = ensureCtx(); if(!c || muted) return;
+    const pan = Math.max(-1, Math.min(1, (screenFrac-0.5)*2));
+    const t = c.currentTime;
+    toneThump(t, {freq:40, dur:1.3, vol:0.15, pan});
+    noiseHit(t, {freq:260, dur:1.0, vol:0.09, pan, type:'lowpass'});
+  }
+
+  function playPlaneDrone(dir, duration){
+    const c = ensureCtx(); if(!c || muted) return;
+    const t = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type='sawtooth';
+    osc.frequency.setValueAtTime(85, t);
+    const filt = c.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=450;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.09, t+duration*0.3);
+    g.gain.linearRampToValueAtTime(0.09, t+duration*0.7);
+    g.gain.linearRampToValueAtTime(0.0001, t+duration);
+    osc.connect(filt); filt.connect(g);
+    if(ctx.createStereoPanner){
+      const p = ctx.createStereoPanner();
+      p.pan.setValueAtTime(dir>0?-1:1, t);
+      p.pan.linearRampToValueAtTime(dir>0?1:-1, t+duration);
+      g.connect(p); p.connect(sfxBus);
+    } else {
+      g.connect(sfxBus);
+    }
+    osc.start(t); osc.stop(t+duration+0.05);
+  }
+
+  function playBoatDrone(dir, duration){
+    const c = ensureCtx(); if(!c || muted) return;
+    const t = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(48, t);
+    const filt = c.createBiquadFilter(); filt.type='lowpass'; filt.frequency.value=220;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.07, t+duration*0.25);
+    g.gain.linearRampToValueAtTime(0.07, t+duration*0.75);
+    g.gain.linearRampToValueAtTime(0.0001, t+duration);
+    osc.connect(filt); filt.connect(g);
+    if(ctx.createStereoPanner){
+      const p = ctx.createStereoPanner();
+      p.pan.setValueAtTime(dir>0?-1:1, t);
+      p.pan.linearRampToValueAtTime(dir>0?1:-1, t+duration);
+      g.connect(p); p.connect(sfxBus);
+    } else {
+      g.connect(sfxBus);
+    }
+    osc.start(t); osc.stop(t+duration+0.05);
+  }
+
+  return {
+    start, stop, ensureCtx, setMuted, isMuted, toggleMuted,
+    playShot, playGrenade, playExplosion, playArtillery, playDistantRumble, playPlaneDrone, playBoatDrone
+  };
+})();
+
+/* ===================== DATA ===================== */
+
+const UNIT_TYPES = {
+  infantry:  { key:'infantry',  abbr:'IN', label:'Rifle Squad',      cost:18, hp:42,  dmg:6,  range:140, atkInterval:0.55, speed:32, cooldown:2.0, accuracy:0.62, manCount:4, canGarrison:true },
+  mg:        { key:'mg',        abbr:'MG', label:'Machine Gun Team', cost:32, hp:54,  dmg:9,  range:190, atkInterval:0.42, speed:15, cooldown:3.6, accuracy:0.80, manCount:2, canGarrison:true },
+  sniper:    { key:'sniper',    abbr:'SN', label:'Sniper',           cost:48, hp:20,  dmg:28, range:260, atkInterval:2.1,  speed:18, cooldown:6.2, accuracy:0.90, manCount:1, canGarrison:true },
+  artillery: { key:'artillery', abbr:'AR', label:'Artillery Battery',cost:60, hp:26,  dmg:22, range:320, atkInterval:1.7,  speed:10, cooldown:6.6, accuracy:0.50, manCount:1, splash:26, splashRatio:0.5, canGarrison:false },
+  tank:      { key:'tank',      abbr:'TK', label:'Armor',            cost:80, hp:150, dmg:17, range:170, atkInterval:0.75, speed:22, cooldown:8.5, accuracy:0.75, manCount:0, canGarrison:false },
+};
+const UNIT_ORDER = ['infantry','mg','sniper','artillery','tank'];
+const VEHICLE_STALL_DURATION = 3.0;
+const SUPPRESS_DURATION = 3.5;
+const SUPPRESS_RANGE_BONUS = 55;
+const SUPPRESS_MOVE_MULT = 0.4;
+const CONVOY_FOLLOW_OFFSET = 50;
+
+const TRENCH_JOIN_RADIUS = 24;
+const TRENCH_RANGE_BONUS = 25;
+const TRENCH_COVER_MULT = 0.6;
+const COVER_RELEASE_LOCK = 2.0;
+const COVER_CAPACITY = { trench:3, bunker:2, wall:2 };
+const COVER_MULT = { trench:0.6, bunker:0.5, wall:0.7 };
+const COVER_RANGE_BONUS = { trench:25, bunker:20, wall:15 };
+
+/* Environment presets: sky/ground colors, horizon feature, and fixed set-dressing props
+   placed at fractional lane positions (0 = Allied HQ side, 1 = Axis HQ side).
+   Props of type 'trench', 'bunker', and 'wall' also function as cover points —
+   up to their capacity in mixed squads can garrison one for a defensive bonus. */
+const ENV = {
+  'pearl-harbor': {
+    sky:['#d9ab77','#a8623a'], ground:['#6b5d44','#453b2b'], horizon:'water', horizonColor:'#20424e',
+    props:[
+      {t:'trench', f:0.04, w:70},
+      {t:'bunker', f:0.09},
+      {t:'trench', f:0.15, w:60},
+      {t:'hangar', f:0.26, w:78, h:44},
+      {t:'palm', f:0.34},
+      {t:'palm', f:0.6},
+      {t:'hangar', f:0.72, w:70, h:50},
+      {t:'palm', f:0.85},
+      {t:'trench', f:0.93, w:60},
+    ]
+  },
+  'midway': {
+    sky:['#9cc6d2','#6ba2b3'], ground:['#ab9c62','#877a48'], horizon:'water', horizonColor:'#1f5468',
+    props:[
+      {t:'trench', f:0.08, w:55},
+      {t:'palm', f:0.18}, {t:'palm', f:0.3},
+      {t:'hangar', f:0.4, w:90, h:40},
+      {t:'bunker', f:0.53},
+      {t:'trench', f:0.62, w:70},
+      {t:'wall', f:0.71, w:60},
+      {t:'bunker', f:0.79},
+      {t:'trench', f:0.87, w:70},
+      {t:'wall', f:0.94, w:60},
+    ]
+  },
+  'normandy': {
+    sky:['#8f948a','#6d7269'], ground:['#8a7a52','#525c3d'], horizon:'water', horizonColor:'#28414a',
+    props:[
+      {t:'trench', f:0.06, w:55},
+      {t:'hedgehog', f:0.1}, {t:'hedgehog', f:0.14}, {t:'hedgehog', f:0.18},
+      {t:'pine', f:0.3}, {t:'pine', f:0.36},
+      {t:'bunker', f:0.48},
+      {t:'wall', f:0.56, w:70},
+      {t:'ruin', f:0.64, w:50, h:34},
+      {t:'bunker', f:0.72},
+      {t:'trench', f:0.8, w:70},
+      {t:'village', f:0.87, w:52, h:40},
+      {t:'wall', f:0.94, w:60},
+    ]
+  },
+  'bulge': {
+    sky:['#aeb3ac','#868d88'], ground:['#c4c9c3','#9aa39c'], horizon:'none',
+    props:[
+      {t:'trench', f:0.06, w:70},
+      {t:'bunker', f:0.11},
+      {t:'trench', f:0.16, w:60},
+      {t:'pine', f:0.05}, {t:'pine', f:0.22},
+      {t:'village', f:0.3, w:48, h:38},
+      {t:'pine', f:0.4}, {t:'pine', f:0.47},
+      {t:'trench', f:0.5, w:80},
+      {t:'bunker', f:0.56},
+      {t:'pine', f:0.6}, {t:'pine', f:0.68},
+      {t:'ruin', f:0.78, w:46, h:32},
+      {t:'pine', f:0.87}, {t:'pine', f:0.94},
+      {t:'trench', f:0.9, w:60},
+    ]
+  },
+  'iwo-jima': {
+    sky:['#a89a89','#7c6c5e'], ground:['#332c25','#211c17'], horizon:'mountain',
+    props:[
+      {t:'dead', f:0.08},
+      {t:'trench', f:0.16, w:55},
+      {t:'dead', f:0.26},
+      {t:'bunker', f:0.38},
+      {t:'trench', f:0.48, w:70},
+      {t:'bunker', f:0.58},
+      {t:'dead', f:0.65},
+      {t:'trench', f:0.74, w:80},
+      {t:'bunker', f:0.83},
+      {t:'trench', f:0.91, w:70},
+      {t:'bunker', f:0.97},
+    ]
+  },
+  'okinawa': {
+    sky:['#9bbfa8','#729580'], ground:['#5f7748','#6e603f'], horizon:'mountain',
+    props:[
+      {t:'pine', f:0.08}, {t:'pine', f:0.15},
+      {t:'trench', f:0.22, w:55},
+      {t:'village', f:0.32, w:50, h:38},
+      {t:'wall', f:0.44, w:65}, {t:'pine', f:0.5},
+      {t:'bunker', f:0.56},
+      {t:'trench', f:0.63, w:70},
+      {t:'ruin', f:0.7, w:48, h:34},
+      {t:'wall', f:0.78, w:70},
+      {t:'bunker', f:0.86},
+      {t:'trench', f:0.92, w:70},
+      {t:'wall', f:0.97, w:60},
+    ]
+  },
+  'britain': {
+    sky:['#aac4cc','#7f9aa3'], ground:['#5f7a4a','#465c37'], horizon:'water', horizonColor:'#2f5560',
+    props:[
+      {t:'trench', f:0.05, w:60},
+      {t:'hangar', f:0.15, w:74, h:42},
+      {t:'wall', f:0.24, w:60},
+      {t:'bunker', f:0.34},
+      {t:'trench', f:0.44, w:70},
+      {t:'village', f:0.54, w:48, h:36},
+      {t:'bunker', f:0.64},
+      {t:'trench', f:0.73, w:70},
+      {t:'hangar', f:0.84, w:74, h:42},
+      {t:'trench', f:0.94, w:60},
+    ]
+  },
+  'north-africa': {
+    sky:['#e8c98a','#c99a5c'], ground:['#c9a866','#a9884a'], horizon:'none',
+    props:[
+      {t:'hedgehog', f:0.1}, {t:'hedgehog', f:0.16},
+      {t:'dead', f:0.24},
+      {t:'bunker', f:0.34},
+      {t:'ruin', f:0.44, w:44, h:30},
+      {t:'hedgehog', f:0.54}, {t:'hedgehog', f:0.6},
+      {t:'bunker', f:0.7},
+      {t:'ruin', f:0.8, w:44, h:30},
+      {t:'hedgehog', f:0.9},
+    ]
+  },
+  'guadalcanal': {
+    sky:['#bfe0d8','#8fc4b6'], ground:['#4a6b3a','#33502a'], horizon:'water', horizonColor:'#1f5f5a',
+    props:[
+      {t:'trench', f:0.05, w:60},
+      {t:'palm', f:0.13}, {t:'palm', f:0.2},
+      {t:'hangar', f:0.32, w:80, h:38},
+      {t:'bunker', f:0.42},
+      {t:'palm', f:0.5},
+      {t:'trench', f:0.58, w:70},
+      {t:'bunker', f:0.68},
+      {t:'palm', f:0.76}, {t:'palm', f:0.84},
+      {t:'trench', f:0.92, w:60},
+    ]
+  },
+  'stalingrad': {
+    sky:['#8a8378','#5c574c'], ground:['#6b625a','#4a433c'], horizon:'none',
+    props:[
+      {t:'ruin', f:0.05, w:46, h:34}, {t:'trench', f:0.1, w:60},
+      {t:'ruin', f:0.18, w:50, h:36},
+      {t:'bunker', f:0.26}, {t:'ruin', f:0.34, w:44, h:30},
+      {t:'trench', f:0.42, w:70},
+      {t:'ruin', f:0.5, w:52, h:38}, {t:'bunker', f:0.58},
+      {t:'ruin', f:0.66, w:44, h:30}, {t:'trench', f:0.74, w:70},
+      {t:'ruin', f:0.82, w:50, h:36}, {t:'bunker', f:0.9},
+      {t:'ruin', f:0.96, w:44, h:30},
+    ]
+  },
+  'kursk': {
+    sky:['#bcd4e0','#8fb0c2'], ground:['#7c8a4a','#5f6c38'], horizon:'none',
+    props:[
+      {t:'trench', f:0.08, w:60},
+      {t:'pine', f:0.2}, {t:'pine', f:0.28},
+      {t:'wall', f:0.4, w:60},
+      {t:'pine', f:0.52},
+      {t:'trench', f:0.64, w:70},
+      {t:'wall', f:0.76, w:70},
+      {t:'pine', f:0.86},
+      {t:'trench', f:0.94, w:60},
+    ]
+  },
+  'market-garden': {
+    sky:['#a8ada0','#7c8172'], ground:['#6b7a4a','#4f5c37'], horizon:'water', horizonColor:'#3a5560',
+    props:[
+      {t:'trench', f:0.05, w:55},
+      {t:'wall', f:0.15, w:65},
+      {t:'village', f:0.26, w:50, h:38},
+      {t:'bunker', f:0.36},
+      {t:'wall', f:0.46, w:70},
+      {t:'trench', f:0.56, w:70},
+      {t:'ruin', f:0.66, w:46, h:32},
+      {t:'bunker', f:0.76},
+      {t:'wall', f:0.86, w:65},
+      {t:'trench', f:0.95, w:60},
+    ]
+  },
+};
+
+const MISSIONS = [
+  { id:'britain', theater:'europe', code:'Battle of Britain', date:'July–October 1940', place:'Southern England', mapX:110, mapY:95,
+    brief:'Two phases: hold the coast against the first waves, then push out and break up the invasion barges massing across the Channel.',
+    mode:'multistage', laneLength:1000, playerBaseHp:220,
+    startSupply:35, supplyRate:5.4, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.3, mg:.2, sniper:.1, artillery:.2, tank:.2}, difficulty:2,
+    stages:[
+      { type:'defense', surviveTime:70, label:'Phase 1 — Hold the Coast', hint:'Radar has given early warning — hold the coastal line against the first waves.' },
+      { type:'assault', enemyBaseHp:200, label:'Phase 2 — Break the Invasion Fleet', hint:'The first wave is spent. Push out and break up the invasion barges before they regroup.' }
+    ] },
+
+  { id:'pearl-harbor', theater:'pacific', code:'Pearl Harbor', date:'December 7, 1941', place:'Oahu, Hawaii', mapX:700, mapY:300,
+    brief:'A surprise strike hits the harbor at dawn. Hold the defensive line until the fleet can respond.',
+    mode:'defense', surviveTime:150, laneLength:900, playerBaseHp:230,
+    startSupply:40, supplyRate:5.2, enemySupplyRate:7.5, enemySpawnMin:0.9, enemySpawnMax:1.9,
+    enemyComposition:{infantry:.45, mg:.2, sniper:.1, artillery:.15, tank:.1}, difficulty:2 },
+
+  { id:'midway', theater:'pacific', code:'Midway', date:'June 4–7, 1942', place:'Midway Atoll, Pacific', mapX:775, mapY:185,
+    brief:'Break the enemy strike force before it can consolidate, then seize the atoll.',
+    mode:'assault', laneLength:950, playerBaseHp:160, enemyBaseHp:150,
+    startSupply:35, supplyRate:6, enemySupplyRate:6.2, enemySpawnMin:1.1, enemySpawnMax:2.2,
+    enemyComposition:{infantry:.35, mg:.2, sniper:.1, artillery:.2, tank:.15}, difficulty:3,
+    objectives:[0.35,0.65] },
+
+  { id:'guadalcanal', theater:'pacific', code:'Guadalcanal', date:'August 1942 – February 1943', place:'Solomon Islands', mapX:830, mapY:460,
+    brief:'A supply convoy has to reach Henderson Field, but it will only move behind your front line — push the enemy back to bring it home.',
+    mode:'escort', laneLength:1000, playerBaseHp:200,
+    startSupply:32, supplyRate:5.6, enemySupplyRate:6.8, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.35, mg:.25, sniper:.15, artillery:.15, tank:.1}, difficulty:3,
+    convoy:{ hp:180, speed:45 } },
+
+  { id:'stalingrad', theater:'europe', code:'Stalingrad', date:'August 1942 – February 1943', place:'Stalingrad, Soviet Union', mapX:345, mapY:230,
+    brief:'The city has to hold, block by block, no matter the cost.',
+    mode:'defense', surviveTime:170, laneLength:950, playerBaseHp:260,
+    startSupply:34, supplyRate:5, enemySupplyRate:7.6, enemySpawnMin:0.85, enemySpawnMax:1.75,
+    enemyComposition:{infantry:.4, mg:.2, sniper:.15, artillery:.15, tank:.1}, difficulty:4 },
+
+  { id:'north-africa', theater:'africa', code:'El Alamein', date:'October–November 1942', place:'Western Desert, Egypt', mapX:190, mapY:460,
+    brief:'Fight through the minefields and destroy the enemy fuel depot before their armor can be resupplied.',
+    mode:'demolition', laneLength:950, playerBaseHp:200,
+    startSupply:32, supplyRate:5.8, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.25, mg:.25, sniper:.15, artillery:.15, tank:.2}, difficulty:3,
+    demoTarget:{ frac:0.72, hp:260 } },
+
+  { id:'kursk', theater:'europe', code:'Kursk', date:'July 1943', place:'Kursk, Soviet Union', mapX:370, mapY:175,
+    brief:"The German offensive has stalled in the salient. Break their exhausted armor before they can withdraw.",
+    mode:'assault', laneLength:1050, playerBaseHp:210, enemyBaseHp:260,
+    startSupply:32, supplyRate:6, enemySupplyRate:7, enemySpawnMin:0.95, enemySpawnMax:1.9,
+    enemyComposition:{infantry:.2, mg:.2, sniper:.1, artillery:.2, tank:.3}, difficulty:4,
+    objectives:[0.3,0.55,0.8] },
+
+  { id:'normandy', theater:'europe', code:'Overlord — Normandy', date:'June 6, 1944', place:'Normandy, France', mapX:150, mapY:270,
+    brief:'Establish a beachhead, silence the coastal defenses, and push inland.',
+    mode:'assault', laneLength:1100, playerBaseHp:190, enemyBaseHp:220,
+    startSupply:30, supplyRate:6.2, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.2, tank:.1}, difficulty:3,
+    objectives:[0.3,0.55,0.8], weather:'rain' },
+
+  { id:'market-garden', theater:'europe', code:'Market Garden', date:'September 1944', place:'Arnhem, Netherlands', mapX:230, mapY:140,
+    brief:"Airborne troops are holding the far bridge. Fight up the corridor and link up before they're overrun.",
+    mode:'assault', laneLength:1050, playerBaseHp:190, enemyBaseHp:240,
+    startSupply:30, supplyRate:6, enemySupplyRate:7.2, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.2, tank:.1}, difficulty:4,
+    objectives:[0.25,0.5,0.75] },
+
+  { id:'bulge', theater:'europe', code:'The Ardennes — Bulge', date:'Dec 1944 – Jan 1945', place:'Ardennes Forest, Belgium', mapX:265, mapY:195,
+    brief:'A winter counteroffensive tears through the line. Hold your ground until reinforcements arrive.',
+    mode:'defense', surviveTime:180, laneLength:1000, playerBaseHp:250,
+    startSupply:35, supplyRate:5, enemySupplyRate:8, enemySpawnMin:0.85, enemySpawnMax:1.7,
+    enemyComposition:{infantry:.25, mg:.15, sniper:.1, artillery:.2, tank:.3}, difficulty:4, weather:'snow' },
+
+  { id:'iwo-jima', theater:'pacific', code:'Detachment — Iwo Jima', date:'Feb–Mar 1945', place:'Iwo Jima, Volcano Islands', mapX:900, mapY:345,
+    brief:'A dug-in garrison contests every yard of volcanic rock. Take it position by position.',
+    mode:'assault', laneLength:1000, playerBaseHp:210, enemyBaseHp:290,
+    startSupply:30, supplyRate:5.6, enemySupplyRate:6.6, enemySpawnMin:1.05, enemySpawnMax:2.1,
+    enemyComposition:{infantry:.25, mg:.3, sniper:.15, artillery:.2, tank:.1}, difficulty:4,
+    objectives:[0.25,0.5,0.75] },
+
+  { id:'okinawa', theater:'pacific', code:'Iceberg — Okinawa', date:'Apr–Jun 1945', place:'Okinawa, Ryukyu Islands', mapX:935, mapY:410,
+    brief:'The largest amphibious assault of the Pacific war. Break the final defensive belt.',
+    mode:'assault', laneLength:1200, playerBaseHp:230, enemyBaseHp:330,
+    startSupply:30, supplyRate:6, enemySupplyRate:8.2, enemySpawnMin:0.8, enemySpawnMax:1.7,
+    enemyComposition:{infantry:.2, mg:.25, sniper:.15, artillery:.2, tank:.2}, difficulty:5,
+    objectives:[0.2,0.4,0.6,0.8] },
+];
+MISSIONS.forEach(m=>{ m.env = ENV[m.id]; });
+
+const THEATER_COLOR = { pacific:'#454a42', europe:'#49531f', africa:'#8a7040' };
+const RANK_CHEVRON = { filled:'▲', empty:'△' };
+
+/* ===================== DOM ===================== */
+
+const el = (id)=>document.getElementById(id);
+const screenBriefing = el('screen-briefing');
+const screenGame = el('screen-game');
+const canvas = el('battlefield');
+const ctx = canvas.getContext('2d');
+const minimapCanvas = el('minimap');
+const minimapCtx = minimapCanvas.getContext('2d');
+
+/* ===================== BRIEFING SCREEN BUILD ===================== */
+
+const progress = {
+  unlocked: new Set([MISSIONS[0].id]),
+  completed: new Set(),
+};
+
+let selectedMissionId = null;
+
+function rankMarks(n){
+  let s='';
+  for(let i=1;i<=5;i++) s += (i<=n? RANK_CHEVRON.filled : RANK_CHEVRON.empty);
+  return s;
+}
+
+function unlockNextMission(finishedId){
+  progress.completed.add(finishedId);
+  const idx = MISSIONS.findIndex(m=>m.id===finishedId);
+  if(idx>=0 && idx+1<MISSIONS.length){
+    progress.unlocked.add(MISSIONS[idx+1].id);
+  }
+}
+
+function buildWarMap(){
+  const group = el('map-pins');
+  group.innerHTML='';
+  const svgNS = 'http://www.w3.org/2000/svg';
+  MISSIONS.forEach((m,i)=>{
+    const isUnlocked = progress.unlocked.has(m.id);
+    const isDone = progress.completed.has(m.id);
+    const g = document.createElementNS(svgNS,'g');
+    g.setAttribute('class','map-pin' + (isUnlocked?'':' locked') + (isDone?' completed':''));
+    g.dataset.mission = m.id;
+
+    const labelWidth = Math.max(70, m.code.length*7.2);
+    const labelSide = m.mapX > 500 ? -1 : 1;
+    const labelX = m.mapX + labelSide*30;
+
+    g.innerHTML = `
+      <rect class="pin-label-bg" x="${labelSide>0?labelX-4:labelX-labelWidth+4}" y="${m.mapY-11}" width="${labelWidth}" height="22" rx="2"></rect>
+      <text class="pin-label" x="${labelX}" y="${m.mapY+5}" text-anchor="${labelSide>0?'start':'end'}">${m.code}</text>
+      <circle class="pin-badge" cx="${m.mapX}" cy="${m.mapY}" r="16"></circle>
+      ${isDone
+        ? `<text class="pin-check" x="${m.mapX}" y="${m.mapY+5}">&#10003;</text>`
+        : `<text class="pin-num" x="${m.mapX}" y="${m.mapY+6}">${i+1}</text>`}
+    `;
+    g.addEventListener('click', ()=> selectMission(m.id));
+    group.appendChild(g);
+  });
+  refreshPinStates();
+}
+
+function refreshPinStates(){
+  const group = el('map-pins');
+  Array.prototype.forEach.call(group.querySelectorAll('.map-pin'), (g)=>{
+    const id = g.dataset.mission;
+    const isUnlocked = progress.unlocked.has(id);
+    const isDone = progress.completed.has(id);
+    g.classList.toggle('locked', !isUnlocked);
+    g.classList.toggle('completed', isDone);
+    g.classList.toggle('selected', id===selectedMissionId);
+  });
+}
+
+function selectMission(id){
+  const m = MISSIONS.find(mm=>mm.id===id);
+  if(!m) return;
+  selectedMissionId = id;
+  refreshPinStates();
+  renderMissionPanel(m);
+}
+
+const MODE_LABELS = {
+  defense: 'Hold the Line',
+  assault: 'Rush the Objective',
+  escort: 'Escort Convoy',
+  demolition: 'Demolition',
+  multistage: 'Multi-Stage',
+};
+
+function renderMissionPanel(m){
+  const panel = el('mission-panel');
+  const isUnlocked = progress.unlocked.has(m.id);
+  const isDone = progress.completed.has(m.id);
+  panel.innerHTML = `
+    <div class="place-date">${m.date} · ${m.place}${isDone ? ' · Completed' : ''}</div>
+    <h2>${m.code}</h2>
+    <div class="brief-text">${m.brief}</div>
+    <div class="meta-row">
+      <span class="rank-marks">${rankMarks(m.difficulty)}</span>
+      <span class="mode-tag">${MODE_LABELS[m.mode] || m.mode}</span>
+    </div>
+    ${isUnlocked
+      ? `<button class="deploy-btn" id="panel-deploy-btn">Deploy</button>`
+      : `<div class="lock-note">Locked — win the previous operation to open this one.</div>`}
+  `;
+  if(isUnlocked){
+    el('panel-deploy-btn').addEventListener('click', ()=> startCinematic(m.id));
+  }
+}
+
+buildWarMap();
+
+
+/* ===================== COMMAND BAR BUILD ===================== */
+
+function buildCommandBar(){
+  const bar = el('command-bar');
+  bar.innerHTML='';
+  UNIT_ORDER.forEach((key, i)=>{
+    const u = UNIT_TYPES[key];
+    const btn = document.createElement('button');
+    btn.className='unit-btn';
+    btn.id = 'unit-btn-'+key;
+    btn.innerHTML = `
+      <span class="unit-key">${i+1}</span>
+      <div class="row1">
+        <div class="unit-chip">${u.abbr}</div>
+        <div class="unit-name">${u.label}</div>
+      </div>
+      <div class="unit-cost">${u.cost} supply</div>
+      <div class="unit-acc">${Math.round(u.accuracy*100)}% hit · range ${u.range}</div>
+      <div class="cooldown-veil" id="veil-${key}" style="height:0%;"></div>
+    `;
+    btn.addEventListener('click', ()=> deployPlayerUnit(key));
+    bar.appendChild(btn);
+  });
+}
+buildCommandBar();
+
+/* ===================== TEXTURE / PATTERN CACHE ===================== */
+
+let PATTERNS = null;
+function buildBlotchPattern(colors){
+  const size=20;
+  const oc=document.createElement('canvas'); oc.width=size; oc.height=size;
+  const octx=oc.getContext('2d');
+  octx.fillStyle=colors[0]; octx.fillRect(0,0,size,size);
+  octx.fillStyle=colors[1];
+  for(let i=0;i<7;i++){
+    const bx=(i*7+3)%size, by=(i*11+2)%size;
+    octx.beginPath(); octx.ellipse(bx,by,4,2.6,i,0,Math.PI*2); octx.fill();
+  }
+  octx.fillStyle=colors[2]||colors[1];
+  for(let i=0;i<5;i++){
+    const bx=(i*13+6)%size, by=(i*9+8)%size;
+    octx.beginPath(); octx.ellipse(bx,by,3,2,i*0.6,0,Math.PI*2); octx.fill();
+  }
+  return ctx.createPattern(oc,'repeat');
+}
+function buildStippleTexture(){
+  const size=26;
+  const oc=document.createElement('canvas'); oc.width=size; oc.height=size;
+  const octx=oc.getContext('2d');
+  octx.strokeStyle='rgba(32,31,25,0.5)';
+  octx.lineWidth=1;
+  let seed=17;
+  function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+  for(let i=0;i<12;i++){
+    const x=rnd()*size, y=rnd()*size;
+    octx.beginPath(); octx.moveTo(x,y); octx.lineTo(x+2,y+1); octx.stroke();
+  }
+  return ctx.createPattern(oc,'repeat');
+}
+function ensurePatterns(){
+  if(PATTERNS) return PATTERNS;
+  PATTERNS = {
+    player: buildBlotchPattern(['#5d6b30','#49531f','#7c8b3c']),
+    enemy: buildBlotchPattern(['#5a5d52','#454a42','#333630']),
+    stipple: buildStippleTexture(),
+  };
+  return PATTERNS;
+}
+
+/* ===================== GAME STATE ===================== */
+
+let G = null;
+let rafId = null;
+let lastTs = 0;
+let paused = false;
+
+function computeViewWidth(laneLength){
+  return Math.min(340, Math.max(220, laneLength*0.24));
+}
+
+function makeGameState(mission){
+  const laneLength = mission.laneLength;
+  const objectives = (mission.objectives||[]).map(f=>({ x: f*laneLength, captured:false }));
+  const coverTypes = { trench:1, bunker:1, wall:1 };
+  const trenches = (mission.env.props||[]).filter(p=>coverTypes[p.t]).map(p=>({
+    x: p.f*laneLength,
+    type: p.t,
+    w: p.w || (p.t==='bunker' ? 32 : (p.t==='wall' ? 60 : 70)),
+    capacity: COVER_CAPACITY[p.t],
+    occupants: [],
+    playerLocked: false
+  }));
+  const viewWidth = computeViewWidth(laneLength);
+  const initialPhase = mission.mode==='multistage' ? mission.stages[0] : mission;
+  return {
+    mission,
+    laneLength,
+    elapsed:0,
+    supply: mission.startSupply,
+    supplyMax: 220,
+    enemySupply: mission.startSupply,
+    aiTimer: 1.2,
+    playerBase:{ hp:mission.playerBaseHp, maxHp:mission.playerBaseHp },
+    enemyBase:{ hp:initialPhase.enemyBaseHp||0, maxHp:initialPhase.enemyBaseHp||1 },
+    frontLine: laneLength*0.5,
+    objectives,
+    trenches,
+    units:[],
+    effects:[],
+    floatingText:[],
+    corpses:[],
+    ambient: makeAmbient(),
+    intensity: 1,
+    shakeMag: 0, shakeDur: 0.3, shakeTime: 0,
+    nextUnitId:1,
+    cooldowns:{ infantry:0, mg:0, sniper:0, artillery:0, tank:0 },
+    unitsLost:0,
+    surviveTime: initialPhase.surviveTime||0,
+    over:false,
+    result:null,
+    camera:{ x: Math.min(laneLength-viewWidth/2, Math.max(viewWidth/2, viewWidth*0.58)), viewWidth },
+    precip: mission.weather ? makeParticles(mission.weather) : null,
+    stageIndex: 0,
+    stage: mission.mode==='multistage' ? mission.stages[0] : null,
+    stageStartElapsed: 0,
+    convoy: mission.mode==='escort' ? { x:36, hp:mission.convoy.hp, maxHp:mission.convoy.hp, speed:mission.convoy.speed, arrived:false } : null,
+    demoTarget: mission.mode==='demolition' ? { x: mission.demoTarget.frac*laneLength, hp:mission.demoTarget.hp, maxHp:mission.demoTarget.hp, destroyed:false } : null,
+  };
+}
+
+function currentPhaseType(){
+  return G.stage ? G.stage.type : G.mission.mode;
+}
+
+function phaseElapsed(){
+  return G.stage ? (G.elapsed - G.stageStartElapsed) : G.elapsed;
+}
+
+function makeParticles(type){
+  const count = type==='rain' ? 110 : 70;
+  const flakes=[];
+  for(let i=0;i<count;i++){
+    flakes.push({ x:Math.random(), y:Math.random(), s:0.3+Math.random()*0.7, r:1+Math.random()*2 });
+  }
+  return { type, items:flakes };
+}
+
+/* ===================== CINEMATIC INTRO ===================== */
+
+const CINEMATIC_LINES = {
+  'britain': [
+    'July 1940 — with France fallen, Britain now stands alone.',
+    'Radar chains give early warning as the first waves cross the Channel.',
+    'If the skies are lost, the invasion barges follow. The coast has to hold.'
+  ],
+  'pearl-harbor': [
+    'December 7, 1941 — before dawn, carriers close on Oahu undetected.',
+    'At 7:48 AM, the first wave strikes the fleet anchored at Pearl Harbor.',
+    'Man the guns. The harbor has to hold.'
+  ],
+  'midway': [
+    "June 1942 — codebreakers reveal the enemy's next target: Midway Atoll.",
+    'Four enemy carriers steam east, confident of another swift victory.',
+    'This time, the fleet will be waiting.'
+  ],
+  'guadalcanal': [
+    'August 1942 — Marines seize an unfinished airstrip on a jungle island.',
+    'The enemy is determined to take Henderson Field back at any cost.',
+    'A convoy is inbound with the supplies to hold it. It has to get through.'
+  ],
+  'stalingrad': [
+    'Autumn 1942 — the battle for the city has become a battle for every building.',
+    "Both sides are locked in, block by block, with no room left to maneuver.",
+    'Winter is coming. Until then, the line has to hold.'
+  ],
+  'north-africa': [
+    'October 1942 — the desert war has ground to a stalemate at El Alamein.',
+    "The enemy's tanks are strong, but their fuel reserves are running out.",
+    'Find their depot in the minefields ahead, and burn it to the ground.'
+  ],
+  'kursk': [
+    'July 1943 — the largest tank battle in history grinds through its second week.',
+    "The enemy's armored spearhead is exhausted, its fuel and reserves spent.",
+    'Now is the moment to break them before they can withdraw in good order.'
+  ],
+  'normandy': [
+    'June 6, 1944 — the largest invasion fleet ever assembled crosses the Channel by night.',
+    'At first light, landing craft turn toward the Normandy coast.',
+    'The beachhead has to be secured before the defenders recover.'
+  ],
+  'market-garden': [
+    'September 1944 — airborne troops drop deep behind the lines to seize the bridges.',
+    'Ground forces now have to fight up a single narrow corridor to reach them.',
+    'The bridge at Arnhem is still holding. There is no time to waste.'
+  ],
+  'bulge': [
+    'December 1944 — under cover of winter fog, enemy divisions mass in the Ardennes.',
+    'At dawn they strike, punching through the thin Allied line.',
+    'Reinforcements are coming. The line has to hold until they arrive.'
+  ],
+  'iwo-jima': [
+    "Weeks of naval bombardment have failed to silence the island's defenses.",
+    'Beneath the volcanic highlands, a vast tunnel network waits undamaged.',
+    'Every yard will have to be taken by hand.'
+  ],
+  'okinawa': [
+    'April 1945 — the fleet approaches the last island before the home islands themselves.',
+    'The garrison has withdrawn inland, dug into the hills ahead.',
+    'This will be the largest amphibious assault of the war.'
+  ],
+};
+
+const CINEMATIC_DURATION = 13;
+let inCinematic = false;
+let cinematicRaf = null;
+let cinematicLastTs = 0;
+let cinematicElapsed = 0;
+let cinematicCamStart = 0, cinematicCamEnd = 0;
+let cinematicLines = [];
+
+function seedCinematicAmbient(mission, ambient){
+  switch(mission.id){
+    case 'britain':
+      ambient.planes.push({ x:-0.05, y:0.14, dir:1, speed:0.06, type:'fighter' });
+      ambient.planes.push({ x:-0.2, y:0.24, dir:1, speed:0.055, type:'bomber' });
+      ambient.planes.push({ x:1.05, y:0.18, dir:-1, speed:0.06, type:'fighter' });
+      ambient.flashes.push({ x:0.5, age:0, life:4 });
+      break;
+    case 'pearl-harbor':
+      ambient.flashes.push({ x:0.5, age:0, life:5.5, big:true });
+      ambient.planes.push({ x:-0.05, y:0.12, dir:1, speed:0.05, type:'bomber' });
+      ambient.planes.push({ x:1.05, y:0.22, dir:-1, speed:0.045, type:'fighter' });
+      break;
+    case 'midway':
+      ambient.planes.push({ x:-0.05, y:0.1, dir:1, speed:0.05, type:'bomber' });
+      ambient.boats.push({ x:-0.05, dir:1, speed:0.015 });
+      break;
+    case 'guadalcanal':
+      ambient.boats.push({ x:-0.05, dir:1, speed:0.014 });
+      ambient.planes.push({ x:1.05, y:0.16, dir:-1, speed:0.05, type:'fighter' });
+      ambient.flashes.push({ x:0.4, age:0, life:4 });
+      break;
+    case 'stalingrad':
+      ambient.flashes.push({ x:0.35, age:0, life:4.5 });
+      ambient.flashes.push({ x:0.65, age:0, life:4 });
+      break;
+    case 'north-africa':
+      ambient.flashes.push({ x:0.72, age:0, life:4.5 });
+      break;
+    case 'kursk':
+      ambient.flashes.push({ x:0.45, age:0, life:4 });
+      ambient.flashes.push({ x:0.6, age:0, life:4.2 });
+      break;
+    case 'normandy':
+      ambient.boats.push({ x:-0.05, dir:1, speed:0.014 });
+      ambient.boats.push({ x:-0.2, dir:1, speed:0.012 });
+      ambient.boats.push({ x:1.05, dir:-1, speed:0.013 });
+      break;
+    case 'market-garden':
+      ambient.planes.push({ x:-0.05, y:0.12, dir:1, speed:0.045, type:'bomber' });
+      ambient.planes.push({ x:-0.25, y:0.2, dir:1, speed:0.04, type:'bomber' });
+      break;
+    case 'bulge':
+      ambient.flashes.push({ x:0.3, age:0, life:4 });
+      ambient.flashes.push({ x:0.7, age:0, life:4.5 });
+      break;
+    case 'iwo-jima':
+      ambient.flashes.push({ x:0.5, age:0, life:5.5, big:true });
+      ambient.flashes.push({ x:0.35, age:0, life:4 });
+      break;
+    case 'okinawa':
+      ambient.boats.push({ x:-0.05, dir:1, speed:0.013 });
+      ambient.flashes.push({ x:0.6, age:0, life:4.5 });
+      break;
+  }
+}
+
+function startCinematic(id){
+  const mission = MISSIONS.find(m=>m.id===id);
+  G = makeGameState(mission);
+  seedCinematicAmbient(mission, G.ambient);
+
+  inCinematic = true;
+  document.body.classList.add('cinematic-mode');
+  screenBriefing.classList.remove('active');
+  screenGame.classList.add('active');
+  resizeCanvas();
+
+  el('cinematic-title').textContent = mission.code.toUpperCase() + ' — ' + mission.date;
+  cinematicLines = CINEMATIC_LINES[mission.id] || [mission.brief];
+  const capEl = el('cinematic-caption');
+  capEl.textContent=''; capEl.classList.remove('show'); capEl.dataset.current='';
+
+  cinematicElapsed = 0;
+  cinematicCamStart = G.camera.viewWidth/2;
+  cinematicCamEnd = G.laneLength - G.camera.viewWidth/2;
+  G.camera.x = cinematicCamStart;
+
+  cinematicLastTs = performance.now();
+  if(cinematicRaf) cancelAnimationFrame(cinematicRaf);
+  cinematicRaf = requestAnimationFrame(cinematicLoopFn);
+}
+
+function updateCinematicCaptions(elapsed){
+  if(!cinematicLines.length) return;
+  const perLine = CINEMATIC_DURATION/cinematicLines.length;
+  const idx = Math.min(cinematicLines.length-1, Math.floor(elapsed/perLine));
+  const capEl = el('cinematic-caption');
+  if(capEl.dataset.current !== String(idx)){
+    capEl.dataset.current = String(idx);
+    capEl.textContent = cinematicLines[idx];
+    capEl.classList.remove('show');
+    void capEl.offsetWidth;
+    capEl.classList.add('show');
+  }
+}
+
+function cinematicLoopFn(ts){
+  cinematicRaf = requestAnimationFrame(cinematicLoopFn);
+  const dt = Math.min(0.05, (ts-cinematicLastTs)/1000);
+  cinematicLastTs = ts;
+  cinematicElapsed += dt;
+  G.elapsed += dt;
+  updateAmbient(dt);
+  const camT = Math.min(1, cinematicElapsed/CINEMATIC_DURATION);
+  G.camera.x = cinematicCamStart + (cinematicCamEnd-cinematicCamStart)*camT;
+  updateCinematicCaptions(cinematicElapsed);
+  render();
+  if(cinematicElapsed >= CINEMATIC_DURATION){
+    endCinematic();
+  }
+}
+
+function endCinematic(){
+  if(cinematicRaf) cancelAnimationFrame(cinematicRaf);
+  cinematicRaf = null;
+  inCinematic = false;
+  document.body.classList.remove('cinematic-mode');
+  const id = G.mission.id;
+  G = null;
+  startMission(id);
+}
+
+/* ===================== MISSION LIFECYCLE ===================== */
+
+function startMission(id){
+  const mission = MISSIONS.find(m=>m.id===id);
+  if(!mission) return;
+  screenBriefing.classList.remove('active');
+  screenGame.classList.add('active');
+  beginGameplay(mission);
+}
+
+function updatePhaseUI(){
+  const phase = currentPhaseType();
+  const showTimer = phase==='defense';
+  el('timer-block').style.display = showTimer ? 'flex' : 'none';
+  el('enemy-hp-block').style.display = showTimer ? 'none' : 'block';
+  let label = 'Enemy HQ';
+  if(G.mission.mode==='escort') label = 'Convoy';
+  else if(G.mission.mode==='demolition') label = 'Target';
+  el('enemy-hp-label').textContent = label;
+}
+
+function beginGameplay(mission){
+  G = makeGameState(mission);
+  document.body.classList.remove('cinematic-mode');
+
+  el('hud-title').textContent = mission.code;
+  el('hud-sub').textContent = mission.place + ' · ' + mission.date;
+  updatePhaseUI();
+
+  buildObjectivePips();
+  el('trench-controls').innerHTML='';
+  buildCoverLockButtons();
+  resizeCanvas();
+
+  const hints = {
+    defense: 'Drag the battlefield (or use the arrows) to look around — trenches, bunkers and walls give cover to infantry, MGs and snipers. Tap the padlock over a position to lock it and force your squads to push past it instead of digging in.',
+    assault: 'Drag to look up and down the line, or use the arrows and mini-map. Cover thins out near your side and thickens toward the objective — lock a position\'s padlock to force your squads to push through it instead of stopping there.',
+    escort: 'The convoy only advances as far as your front line has been pushed — break the enemy back and it follows safely behind. If it goes down, the mission is lost.',
+    demolition: 'Push through to the depot marked on the field and keep attacking it until it goes up. There\'s no need to take the far HQ.',
+    multistage: mission.stages && mission.stages[0].hint ? mission.stages[0].hint : 'This operation has more than one phase — the objective will change partway through.',
+  };
+  showHint(hints[mission.mode] || 'Good luck.');
+
+  paused = false;
+  el('overlay-pause').classList.remove('active');
+  el('overlay-result').classList.remove('active');
+  lastTs = performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+  Music.stop();
+}
+
+function buildObjectivePips(){
+  const wrap = el('objective-progress');
+  wrap.innerHTML='';
+  if(!G.objectives.length){ wrap.style.display='none'; return; }
+  wrap.style.display='flex';
+  G.objectives.forEach((o,i)=>{
+    const d=document.createElement('div');
+    d.className='objective-pip';
+    d.id='pip-'+i;
+    wrap.appendChild(d);
+  });
+}
+
+let hintTimer=null;
+function showHint(text){
+  const b = el('hint-banner');
+  b.textContent = text;
+  b.style.display='block';
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(()=>{ b.style.display='none'; }, 7000);
+}
+
+function resizeCanvas(){
+  const wrap = canvas.parentElement;
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  canvas.width = wrap.clientWidth*dpr;
+  canvas.height = wrap.clientHeight*dpr;
+  canvas.style.width = wrap.clientWidth+'px';
+  canvas.style.height = wrap.clientHeight+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+
+  const dpr2 = Math.min(window.devicePixelRatio||1, 2);
+  minimapCanvas.width = minimapCanvas.clientWidth*dpr2;
+  minimapCanvas.height = minimapCanvas.clientHeight*dpr2;
+  minimapCtx.setTransform(dpr2,0,0,dpr2,0,0);
+}
+window.addEventListener('resize', ()=>{ if(G) resizeCanvas(); });
+
+/* ===================== DEPLOY / AI SPAWN ===================== */
+
+function deployPlayerUnit(key){
+  if(!G || G.over || paused) return;
+  const u = UNIT_TYPES[key];
+  if(G.supply < u.cost) return;
+  if(G.cooldowns[key] > 0) return;
+  G.supply -= u.cost;
+  G.cooldowns[key] = u.cooldown;
+  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0 });
+}
+
+function weightedPick(comp){
+  const entries = Object.entries(comp);
+  const total = entries.reduce((s,[,w])=>s+w,0);
+  let r = Math.random()*total;
+  for(const [k,w] of entries){ if(r<w) return k; r-=w; }
+  return entries[0][0];
+}
+
+function aiMaybeSpawn(dt){
+  const m = G.mission;
+  let intensity = 1;
+  if(currentPhaseType()==='defense' && G.surviveTime>0){
+    const progress = Math.min(1, phaseElapsed()/G.surviveTime);
+    const escalationMult = m.mode==='multistage' ? 1.2 : 2.3;
+    intensity = 1 + progress*progress*escalationMult; // ramps up sharply toward the final assault
+    if(progress>=0.6 && !G.warnedSurge60){ G.warnedSurge60=true; showHint('Enemy activity is picking up — reinforcements are arriving faster.'); }
+    if(progress>=0.85 && !G.warnedSurge85){ G.warnedSurge85=true; showHint('Final push incoming — hold the line!'); }
+  }
+  G.enemySupply = Math.min(G.supplyMax, G.enemySupply + m.enemySupplyRate*intensity*dt);
+  G.aiTimer -= dt;
+  if(G.aiTimer > 0) return;
+  const key = weightedPick(m.enemyComposition);
+  const u = UNIT_TYPES[key];
+  if(G.enemySupply >= u.cost){
+    G.enemySupply -= u.cost;
+    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0 });
+  }
+  G.aiTimer = (m.enemySpawnMin + Math.random()*(m.enemySpawnMax-m.enemySpawnMin)) / intensity;
+}
+
+/* ===================== COMBAT / EFFECTS ===================== */
+
+function spawnFloatText(x, text, color){
+  G.floatingText.push({ x, text, color, born:G.elapsed });
+}
+
+const COVER_DAMAGE_MULT = { trench:0.8, bunker:0.65, wall:0.85 };
+
+function fireWeapon(u, target, uDef){
+  let acc = uDef.accuracy;
+  if(target.inTrench) acc *= (target.coverMult || TRENCH_COVER_MULT);
+  const hit = Math.random() < acc;
+  const effDur = uDef.key==='artillery' ? 0.5 : (uDef.key==='mg' ? 0.12 : 0.18);
+  G.effects.push({
+    type: uDef.key==='artillery' ? 'shell' : 'tracer',
+    x1:u.x, x2:target.x, side:u.side, born:G.elapsed,
+    dur: effDur,
+    hit
+  });
+
+  if(target.type==='infantry' && !target.inTrench){
+    target.suppressed = true;
+    target.suppressTimer = SUPPRESS_DURATION;
+  }
+
+  if(uDef.key==='artillery'){
+    Music.playArtillery(u.x, target.x, effDur);
+  } else {
+    Music.playShot(uDef.key, u.x);
+    if(uDef.key==='infantry' && Math.abs(u.x-target.x) < 40 && Math.random() < 0.12){
+      Music.playGrenade(target.x);
+    }
+  }
+
+  if(hit){
+    const dmgMult = target.inTrench ? (target.coverDmgMult || 0.8) : 1;
+    const dealt = Math.max(1, Math.round(uDef.dmg*dmgMult));
+    target.hp -= dealt;
+    spawnFloatText(target.x, '-'+dealt, '#ffb37a');
+    if(uDef.splash){
+      for(const o of G.units){
+        if(o===target || o.side===u.side || o.hp<=0) continue;
+        if(Math.abs(o.x-target.x) <= uDef.splash){
+          const oMult = o.inTrench ? (o.coverDmgMult || 0.8) : 1;
+          const sd = Math.max(1, Math.round(uDef.dmg*uDef.splashRatio*oMult));
+          o.hp -= sd;
+          spawnFloatText(o.x, '-'+sd, '#ffb37a');
+        }
+      }
+    }
+  } else {
+    spawnFloatText(target.x, 'MISS', '#ddd3a8');
+  }
+}
+
+/* ===================== SIMULATION ===================== */
+
+function triggerShake(mag, dur){
+  if(!G) return;
+  G.shakeMag = mag;
+  G.shakeDur = dur;
+  G.shakeTime = dur;
+}
+
+function step(dt){
+  if(G.over) return;
+  G.elapsed += dt;
+  G.supply = Math.min(G.supplyMax, G.supply + G.mission.supplyRate*dt);
+  for(const k of UNIT_ORDER) if(G.cooldowns[k]>0) G.cooldowns[k] = Math.max(0, G.cooldowns[k]-dt);
+  if(G.shakeTime>0) G.shakeTime = Math.max(0, G.shakeTime-dt);
+
+  aiMaybeSpawn(dt);
+  updateAmbient(dt);
+
+  const alive = G.units.filter(u=>u.hp>0);
+
+  for(const u of alive){
+    const uDef = UNIT_TYPES[u.type];
+    if(u.coverLock>0) u.coverLock = Math.max(0, u.coverLock-dt);
+    if(u.suppressTimer>0){
+      u.suppressTimer = Math.max(0, u.suppressTimer-dt);
+      if(u.suppressTimer<=0) u.suppressed = false;
+    }
+    const suppressBonus = (u.suppressed && u.type==='infantry') ? SUPPRESS_RANGE_BONUS : 0;
+    const effRange = uDef.range + (u.inTrench ? (u.rangeBonus||TRENCH_RANGE_BONUS) : 0) + suppressBonus;
+    let target=null, bestDist=Infinity;
+    for(const o of alive){
+      if(o.side===u.side || o.hp<=0) continue;
+      const d = Math.abs(o.x-u.x);
+      if(d<=effRange && d<bestDist){ bestDist=d; target=o; }
+    }
+    if(target){
+      u.atkTimer -= dt;
+      if(u.atkTimer<=0){
+        fireWeapon(u, target, uDef);
+        u.atkTimer = uDef.atkInterval;
+      }
+      continue;
+    }
+
+    if(u.inTrench){ continue; }
+
+    if(uDef.canGarrison){
+      let joined=false;
+      if(!(u.coverLock>0)){
+        for(const tr of G.trenches){
+          if(u.side==='player' && tr.playerLocked) continue;
+          if(Math.abs(tr.x-u.x) <= TRENCH_JOIN_RADIUS && tr.occupants.length < tr.capacity){
+            u.inTrench = true;
+            u.trenchSlot = tr.occupants.length;
+            u.coverMult = COVER_MULT[tr.type];
+            u.rangeBonus = COVER_RANGE_BONUS[tr.type];
+            u.coverDmgMult = COVER_DAMAGE_MULT[tr.type];
+            u.x = tr.x;
+            tr.occupants.push(u.id);
+            joined = true;
+            break;
+          }
+        }
+      }
+      if(joined) continue;
+    } else {
+      // Armor and Artillery are structural units: they can't dig into cover,
+      // but they'll pause for a few seconds the first time they reach a strongpoint.
+      if(u.stallTimer > 0){
+        u.stallTimer -= dt;
+        continue;
+      }
+      if(!u.hasStalled){
+        const nearCover = G.trenches.some(tr => Math.abs(tr.x-u.x) <= TRENCH_JOIN_RADIUS);
+        if(nearCover){
+          u.hasStalled = true;
+          u.stallTimer = VEHICLE_STALL_DURATION;
+          continue;
+        }
+      }
+    }
+
+    const moveSpeed = (u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed;
+
+    if(u.side==='player'){
+      if(G.mission.mode==='demolition' && G.demoTarget && !G.demoTarget.destroyed && Math.abs(u.x-G.demoTarget.x) <= 36){
+        G.demoTarget.hp -= uDef.dmg*dt*1.4;
+      } else if(u.x >= G.laneLength-40){
+        if(currentPhaseType()==='assault') G.enemyBase.hp -= uDef.dmg*dt*1.4;
+      } else {
+        u.x += moveSpeed*dt;
+      }
+    } else {
+      if(G.mission.mode==='escort' && G.convoy && !G.convoy.arrived && Math.abs(u.x-G.convoy.x) <= 30){
+        G.convoy.hp -= uDef.dmg*dt*1.4;
+      } else if(u.x <= 40){
+        G.playerBase.hp -= uDef.dmg*dt*1.4;
+      } else {
+        u.x -= moveSpeed*dt;
+      }
+    }
+  }
+
+  const CORPSE_LIFETIME = 10.0;
+  G.units = G.units.filter(u=>{
+    if(u.hp<=0){
+      if(u.side==='player') G.unitsLost++;
+      const corpse = { x:u.x, side:u.side, type:u.type, row:u.row, timer:CORPSE_LIFETIME };
+      if(u.inTrench){
+        corpse.trenchRef = G.trenches.find(t=>t.occupants.includes(u.id)) || null;
+        corpse.trenchSlot = u.trenchSlot;
+      }
+      G.corpses.push(corpse);
+      return false;
+    }
+    return true;
+  });
+  const aliveIds = new Set(G.units.map(u=>u.id));
+  G.trenches.forEach(tr=>{ tr.occupants = tr.occupants.filter(id=>aliveIds.has(id)); });
+
+  G.corpses.forEach(c=> c.timer -= dt);
+  G.corpses = G.corpses.filter(c=> c.timer > 0);
+
+  G.effects = G.effects.filter(e => (G.elapsed - e.born) < e.dur);
+  G.floatingText = G.floatingText.filter(f => (G.elapsed - f.born) < 1.0);
+
+  let playerPower=0, enemyPower=0;
+  for(const u of G.units){
+    const uDef = UNIT_TYPES[u.type];
+    const distToFront = Math.abs(u.x - G.frontLine);
+    const weight = Math.max(0, 1 - distToFront/320);
+    if(weight<=0) continue;
+    if(u.side==='player') playerPower += (uDef.dmg + uDef.hp*0.05) * weight;
+    else enemyPower += (uDef.dmg + uDef.hp*0.05) * weight;
+  }
+  const pressure = (playerPower - enemyPower) * dt * 3.2;
+  G.frontLine = Math.min(G.laneLength-30, Math.max(30, G.frontLine + pressure));
+
+  G.objectives.forEach((o,i)=>{
+    if(!o.captured && G.frontLine >= o.x){
+      o.captured = true;
+      G.supply = Math.min(G.supplyMax, G.supply + 45);
+      const pip = el('pip-'+i);
+      if(pip) pip.classList.add('done');
+      showHint('Objective secured — supply bonus received.');
+    }
+  });
+
+  if(G.mission.mode==='escort' && G.convoy && !G.convoy.arrived && G.convoy.hp>0){
+    const arriveX = G.laneLength-30;
+    const targetX = Math.min(arriveX, Math.max(G.convoy.x, G.frontLine - CONVOY_FOLLOW_OFFSET));
+    if(targetX > G.convoy.x){
+      G.convoy.x = Math.min(targetX, G.convoy.x + G.convoy.speed*dt);
+    }
+    if(G.convoy.x >= arriveX) G.convoy.arrived = true;
+  }
+
+  if(G.playerBase.hp <= 0){
+    G.playerBase.hp = 0;
+    endMission('lose', currentPhaseType()==='defense' ? 'The line collapsed before reinforcements arrived.' : 'Allied HQ was overrun.');
+    return;
+  }
+
+  if(G.mission.mode==='escort'){
+    if(G.convoy.hp <= 0){
+      G.convoy.hp = 0;
+      endMission('lose', 'The convoy was destroyed before it could get through.');
+      return;
+    }
+    if(G.convoy.arrived){
+      endMission('win', 'The convoy made it through. The line is resupplied.');
+      return;
+    }
+  } else if(G.mission.mode==='demolition'){
+    if(G.demoTarget.hp <= 0 && !G.demoTarget.destroyed){
+      G.demoTarget.destroyed = true;
+      G.demoTarget.hp = 0;
+      endMission('win', 'The depot went up in flames. Their armor will not move without fuel.');
+      return;
+    }
+  } else if(G.mission.mode==='multistage'){
+    if(G.stage.type==='assault'){
+      if(G.enemyBase.hp <= 0){
+        G.enemyBase.hp = 0;
+        advanceOrFinishStage();
+        return;
+      }
+    } else {
+      if(phaseElapsed() >= G.surviveTime){
+        advanceOrFinishStage();
+        return;
+      }
+    }
+  } else if(G.mission.mode==='assault'){
+    if(G.enemyBase.hp <= 0){
+      G.enemyBase.hp = 0;
+      endMission('win', 'Enemy headquarters destroyed. The objective is secured.');
+      return;
+    }
+  } else {
+    if(G.elapsed >= G.surviveTime){
+      endMission('win', 'The line held. Reinforcements have arrived.');
+      return;
+    }
+  }
+}
+
+function advanceOrFinishStage(){
+  G.stageIndex++;
+  if(G.stageIndex >= G.mission.stages.length){
+    endMission('win', 'Both phases complete. The objective is secured.');
+    return;
+  }
+  G.stage = G.mission.stages[G.stageIndex];
+  G.stageStartElapsed = G.elapsed;
+  G.surviveTime = G.stage.surviveTime||0;
+  G.enemyBase.maxHp = G.stage.enemyBaseHp || 1;
+  G.enemyBase.hp = G.stage.enemyBaseHp || 0;
+  // The previous phase's escalation can leave the enemy sitting on a large banked
+  // supply — without this, that stockpile would empty out as a flood of units the
+  // instant the new phase begins. Reset it and give the player a short breather.
+  G.enemySupply = Math.min(G.enemySupply, G.mission.startSupply);
+  G.aiTimer = Math.max(G.aiTimer, 4 + Math.random()*2);
+  updatePhaseUI();
+  showHint(G.stage.hint || G.stage.label || 'New phase.');
+}
+
+function endMission(result, desc){
+  G.over = true;
+  G.result = result;
+  cancelAnimationFrame(rafId);
+  if(result==='win') unlockNextMission(G.mission.id);
+  const capturedCount = G.objectives.filter(o=>o.captured).length;
+  el('result-title').textContent = result==='win' ? 'Objective Achieved' : 'Mission Failed';
+  el('result-title').className = result==='win' ? 'win':'lose';
+  el('result-desc').textContent = desc;
+  el('result-time').textContent = formatTime(G.elapsed);
+  el('result-objectives').textContent = G.objectives.length ? `${capturedCount}/${G.objectives.length}` : '—';
+  el('result-losses').textContent = G.unitsLost;
+  el('overlay-result').classList.add('active');
+  Music.start('menu');
+}
+
+function formatTime(s){
+  s = Math.max(0, Math.floor(s));
+  const m = Math.floor(s/60), r = s%60;
+  return m+':'+String(r).padStart(2,'0');
+}
+
+/* ===================== TRENCH CONTROLS ===================== */
+
+function releaseTrench(i){
+  if(!G) return;
+  const tr = G.trenches[i];
+  if(!tr) return;
+  const dir = 1; // player squads always advance toward the enemy (increasing x)
+  tr.occupants = tr.occupants.filter(id=>{
+    const u = G.units.find(uu=>uu.id===id);
+    if(u && u.side==='player'){
+      u.inTrench = false;
+      u.trenchSlot = undefined;
+      u.coverLock = COVER_RELEASE_LOCK;
+      u.x += dir*(TRENCH_JOIN_RADIUS+6);
+      return false;
+    }
+    return true;
+  });
+}
+
+function updateTrenchControls(w, groundY){
+  const container = el('trench-controls');
+  const activeIdx = new Set();
+  G.trenches.forEach((tr, i)=>{
+    const playerCount = tr.occupants.reduce((n,id)=>{
+      const u = G.units.find(uu=>uu.id===id);
+      return n + (u && u.side==='player' ? 1 : 0);
+    }, 0);
+    if(playerCount===0) return;
+    activeIdx.add(i);
+    let btn = container.querySelector('[data-trench="'+i+'"]');
+    if(!btn){
+      btn = document.createElement('button');
+      btn.className='trench-btn';
+      btn.dataset.trench = i;
+      btn.addEventListener('click', ()=> releaseTrench(i));
+      container.appendChild(btn);
+    }
+    const x = laneToPx(tr.x, w);
+    btn.style.left = x+'px';
+    btn.style.top = (groundY-32)+'px';
+    const typeLabel = tr.type==='trench' ? 'Trench' : (tr.type==='bunker' ? 'Bunker' : 'Wall');
+    btn.textContent = 'Advance (' + playerCount + ') · ' + typeLabel;
+  });
+  Array.prototype.slice.call(container.querySelectorAll('.trench-btn')).forEach(btn=>{
+    const idx = parseInt(btn.dataset.trench,10);
+    if(!activeIdx.has(idx)) btn.remove();
+  });
+}
+
+function buildCoverLockButtons(){
+  const container = el('cover-locks');
+  container.innerHTML='';
+  G.trenches.forEach((tr, i)=>{
+    const btn = document.createElement('button');
+    btn.className='lock-btn';
+    btn.dataset.trench = i;
+    btn.addEventListener('click', ()=> toggleCoverLock(i));
+    container.appendChild(btn);
+  });
+  refreshCoverLockLabels();
+}
+
+function toggleCoverLock(i){
+  if(!G) return;
+  const tr = G.trenches[i];
+  if(!tr) return;
+  tr.playerLocked = !tr.playerLocked;
+  refreshCoverLockLabels();
+}
+
+function refreshCoverLockLabels(){
+  const container = el('cover-locks');
+  Array.prototype.forEach.call(container.querySelectorAll('.lock-btn'), (btn)=>{
+    const i = parseInt(btn.dataset.trench,10);
+    const tr = G.trenches[i];
+    if(!tr) return;
+    btn.textContent = tr.playerLocked ? '\u{1F512}' : '\u{1F513}';
+    btn.classList.toggle('locked', !!tr.playerLocked);
+    btn.title = tr.playerLocked
+      ? 'Locked — your squads will push past this position instead of garrisoning'
+      : 'Unlocked — your squads may garrison here';
+  });
+}
+
+function positionCoverLockButtons(w, groundY){
+  const container = el('cover-locks');
+  Array.prototype.forEach.call(container.querySelectorAll('.lock-btn'), (btn)=>{
+    const i = parseInt(btn.dataset.trench,10);
+    const tr = G.trenches[i];
+    if(!tr) return;
+    const x = laneToPx(tr.x, w);
+    btn.style.left = x+'px';
+    btn.style.top = (groundY-58)+'px';
+  });
+}
+
+/* ===================== ENVIRONMENT RENDERING ===================== */
+
+function drawAmbient(w, h, groundY){
+  const a = G.ambient;
+  if(!a) return;
+
+  if(G.intensity>1.25){
+    const glow = Math.min(0.3, (G.intensity-1)*0.12);
+    ctx.fillStyle = `rgba(180,60,30,${glow})`;
+    ctx.fillRect(0,0,w,groundY);
+  }
+
+  a.flashes.forEach(f=>{
+    const t = f.age/f.life;
+    const x = f.x*w, y = groundY-10;
+    const alpha = Math.max(0, 1-t);
+    const scale = f.big ? 2.1 : 1;
+    ctx.fillStyle = `rgba(255,${f.big?150:200},${f.big?70:120},${alpha*(f.big?0.65:0.5)})`;
+    ctx.beginPath(); ctx.arc(x,y, (4+t*22)*scale, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = `rgba(95,92,84,${alpha*(f.big?0.4:0.28)})`;
+    ctx.beginPath(); ctx.arc(x, y-(8+t*20)*scale*0.6, (6+t*11)*scale, 0, Math.PI*2); ctx.fill();
+  });
+
+  a.flaks.forEach(f=>{
+    const t = f.age/f.life;
+    const x = f.x*w, y = f.y*h;
+    const alpha = Math.max(0, 1-t);
+    ctx.fillStyle = `rgba(80,78,72,${alpha*0.5})`;
+    ctx.beginPath(); ctx.arc(x, y, 3+t*8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = `rgba(255,210,140,${alpha*0.6})`;
+    ctx.beginPath(); ctx.arc(x, y, 1.5+t*2, 0, Math.PI*2); ctx.fill();
+  });
+
+  a.boats.forEach(b=>{
+    drawShipSilhouette(b.x*w, groundY-11, b.dir);
+  });
+
+  a.planes.forEach(p=>{
+    drawPlaneSilhouette(p.x*w, p.y*h, p.dir, p.type);
+  });
+}
+
+function drawShipSilhouette(x, y, dir){
+  ctx.save();
+  ctx.translate(x,y);
+  if(dir<0) ctx.scale(-1,1);
+  ctx.fillStyle='rgba(15,14,11,0.55)';
+  ctx.beginPath();
+  ctx.moveTo(-15,3); ctx.lineTo(15,3); ctx.lineTo(10,0); ctx.lineTo(-10,0); ctx.closePath(); ctx.fill();
+  ctx.fillRect(-4,-6,7,6);
+  ctx.fillRect(3,-9,2,3);
+  ctx.restore();
+}
+
+function drawPlaneSilhouette(x, y, dir, type){
+  ctx.save();
+  ctx.translate(x,y);
+  if(dir<0) ctx.scale(-1,1);
+  ctx.strokeStyle='rgba(20,19,14,0.5)';
+  ctx.lineWidth = type==='bomber' ? 2 : 1.4;
+  const span = type==='bomber' ? 13 : 8;
+  ctx.beginPath(); ctx.moveTo(-span,0); ctx.lineTo(span,0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-2,-1); ctx.lineTo(2,-4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-2,1); ctx.lineTo(2,4); ctx.stroke();
+  ctx.restore();
+}
+
+function makeAmbient(){
+  return {
+    planes:[],
+    planeTimer: 6+Math.random()*10,
+    flashes:[],
+    flashTimer: 6+Math.random()*10,
+    boats:[],
+    boatTimer: 5+Math.random()*8,
+    flaks:[],
+    flakTimer: 4+Math.random()*5,
+  };
+}
+
+function updateAmbient(dt){
+  const a = G.ambient;
+  const m = G.mission;
+
+  let intensity = 1;
+  if(currentPhaseType()==='defense' && G.surviveTime>0){
+    const progress = Math.min(1, phaseElapsed()/G.surviveTime);
+    const escalationMult = m.mode==='multistage' ? 1.8 : 3.6;
+    intensity = 1 + progress*progress*escalationMult;
+  }
+  G.intensity = intensity;
+  if(intensity>1.35 && !G.warnedAmbientIntensity){
+    G.warnedAmbientIntensity = true;
+    showHint('The horizon is lighting up — the enemy is throwing everything at the line.');
+  }
+  if(intensity>2.6 && !G.warnedAmbientIntensity2){
+    G.warnedAmbientIntensity2 = true;
+    showHint('Everything is opening up at once — hold on.');
+  }
+
+  a.planeTimer -= dt*intensity;
+  if(a.planeTimer<=0){
+    const dir = Math.random()<0.5 ? 1 : -1;
+    const speed = (0.04+Math.random()*0.03) * Math.min(2.1, intensity);
+    a.planes.push({
+      x: dir>0 ? -0.08 : 1.08,
+      y: 0.08+Math.random()*0.16,
+      dir,
+      speed,
+      type: Math.random()<0.4 ? 'bomber' : 'fighter'
+    });
+    Music.playPlaneDrone(dir, 1.16/speed);
+    a.planeTimer = Math.max(2.5, (14+Math.random()*22) / intensity);
+  }
+  a.planes.forEach(p=> p.x += p.dir*p.speed*dt);
+  a.planes = a.planes.filter(p=> p.x > -0.15 && p.x < 1.15);
+
+  a.flashTimer -= dt*intensity;
+  if(a.flashTimer<=0){
+    const bigChance = Math.min(0.85, Math.max(0, (intensity-1.25)/1.6));
+    const big = Math.random() < bigChance;
+    const f = { x: Math.random(), age:0, life: big ? 4.4 : (3+Math.random()*2), big };
+    a.flashes.push(f);
+    if(big){
+      Music.playExplosion(G.camera.x, 'large');
+      const shakeMag = 0.9 + Math.min(1.6, (intensity-1)*0.7);
+      const shakeDur = 0.3 + Math.min(0.3, (intensity-1)*0.12);
+      triggerShake(shakeMag, shakeDur);
+    } else {
+      Music.playDistantRumble(f.x);
+    }
+    a.flashTimer = Math.max(1.8, (9+Math.random()*14) / intensity);
+  }
+  a.flashes.forEach(f=> f.age += dt);
+  a.flashes = a.flashes.filter(f=> f.age < f.life);
+
+  if(m.env.horizon==='water'){
+    const boatIntensity = currentPhaseType()==='defense' ? Math.max(1, intensity*0.75) : 1;
+    a.boatTimer -= dt*boatIntensity;
+    if(a.boatTimer<=0){
+      const dir = Math.random()<0.5 ? 1 : -1;
+      const speed = 0.012+Math.random()*0.008;
+      a.boats.push({ x: dir>0 ? -0.06 : 1.06, dir, speed });
+      Music.playBoatDrone(dir, 1.12/speed);
+      a.boatTimer = Math.max(6, (16+Math.random()*20) / boatIntensity);
+    }
+    a.boats.forEach(b=> b.x += b.dir*b.speed*dt);
+    a.boats = a.boats.filter(b=> b.x > -0.12 && b.x < 1.12);
+  }
+
+  if(currentPhaseType()==='defense'){
+    a.flakTimer -= dt*Math.max(0.4, intensity-0.5);
+    if(a.flakTimer<=0 && intensity>1.2){
+      const bursts = intensity>2.4 ? 3 : (intensity>1.7 ? 2 : 1);
+      for(let i=0;i<bursts;i++){
+        a.flaks.push({ x:Math.random(), y:0.1+Math.random()*0.28, age:0, life:0.55+Math.random()*0.3 });
+      }
+      a.flakTimer = Math.max(1.1, 5/intensity);
+    }
+  }
+  a.flaks.forEach(f=> f.age += dt);
+  a.flaks = a.flaks.filter(f=> f.age < f.life);
+}
+
+function laneToPx(x, w){
+  const cam = G.camera;
+  const left = cam.x - cam.viewWidth/2;
+  return ((x-left)/cam.viewWidth) * w;
+}
+
+function clampCamera(){
+  const half = G.camera.viewWidth/2;
+  G.camera.x = Math.min(G.laneLength-half, Math.max(half, G.camera.x));
+}
+
+function panCameraBy(worldDelta){
+  if(!G) return;
+  G.camera.x += worldDelta;
+  clampCamera();
+}
+
+function drawShadow(x, y, rx, ry){
+  ctx.fillStyle='rgba(10,9,6,0.28)';
+  ctx.beginPath(); ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2); ctx.fill();
+}
+
+function draw3DBox(x, groundY, w, h, colorFront, colorTop, colorSide){
+  const dx = w*0.2, dy = h*0.4;
+  ctx.fillStyle = colorFront;
+  ctx.fillRect(x-w/2, groundY-h, w, h);
+  ctx.fillStyle = colorSide;
+  ctx.beginPath();
+  ctx.moveTo(x+w/2, groundY-h);
+  ctx.lineTo(x+w/2+dx, groundY-h-dy);
+  ctx.lineTo(x+w/2+dx, groundY-dy);
+  ctx.lineTo(x+w/2, groundY);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = colorTop;
+  ctx.beginPath();
+  ctx.moveTo(x-w/2, groundY-h);
+  ctx.lineTo(x-w/2+dx, groundY-h-dy);
+  ctx.lineTo(x+w/2+dx, groundY-h-dy);
+  ctx.lineTo(x+w/2, groundY-h);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(20,19,14,0.4)'; ctx.lineWidth=1;
+  ctx.strokeRect(x-w/2, groundY-h, w, h);
+}
+
+function drawGroundPerspective(w, h, groundY){
+  const top = groundY-8, bottom = h;
+  const vanishX = w/2;
+  ctx.save();
+  ctx.strokeStyle='rgba(20,19,14,0.1)';
+  ctx.lineWidth=1;
+  const cols=7;
+  for(let i=0;i<=cols;i++){
+    const bx = (i/cols)*w;
+    ctx.beginPath();
+    ctx.moveTo(bx, bottom);
+    ctx.lineTo(vanishX + (bx-vanishX)*0.15, top);
+    ctx.stroke();
+  }
+  const rows=5;
+  for(let i=1;i<=rows;i++){
+    const t = Math.pow(i/rows, 1.7);
+    const y = top + (bottom-top)*t;
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawEnvironment(w, h, groundY){
+  const env = G.mission.env;
+  const skyGrad = ctx.createLinearGradient(0,0,0,groundY);
+  skyGrad.addColorStop(0, env.sky[0]);
+  skyGrad.addColorStop(1, env.sky[1]);
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0,0,w,groundY);
+
+  if(env.horizon==='water'){
+    ctx.fillStyle = env.horizonColor;
+    ctx.fillRect(0, groundY-22, w, 22);
+    ctx.strokeStyle='rgba(255,255,255,0.25)'; ctx.lineWidth=1;
+    for(let i=0;i<w;i+=34){ ctx.beginPath(); ctx.moveTo(i,groundY-10); ctx.lineTo(i+16,groundY-10); ctx.stroke(); }
+  } else if(env.horizon==='mountain'){
+    ctx.fillStyle='rgba(55,50,46,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(w*0.5,groundY);
+    ctx.lineTo(w*0.62, groundY-95);
+    ctx.lineTo(w*0.72, groundY-45);
+    ctx.lineTo(w*0.85, groundY-75);
+    ctx.lineTo(w, groundY-25);
+    ctx.lineTo(w,groundY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawAmbient(w, h, groundY);
+
+  const groundGrad = ctx.createLinearGradient(0,groundY-8,0,h);
+  groundGrad.addColorStop(0, env.ground[0]);
+  groundGrad.addColorStop(1, env.ground[1]);
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0,groundY-8,w,h-(groundY-8));
+
+  const pat = ensurePatterns();
+  ctx.save();
+  ctx.globalAlpha=0.4;
+  ctx.fillStyle = pat.stipple;
+  ctx.fillRect(0,groundY-8,w,h-(groundY-8));
+  ctx.restore();
+
+  drawGroundPerspective(w, h, groundY);
+  drawProps(w, groundY, env.props);
+}
+
+function drawProps(w, groundY, props){
+  if(!props) return;
+  for(const p of props){
+    const x = laneToPx(p.f*G.laneLength, w);
+    switch(p.t){
+      case 'pine': drawPine(x, groundY); break;
+      case 'palm': drawPalm(x, groundY); break;
+      case 'dead': drawDeadTree(x, groundY); break;
+      case 'hangar': drawHangar(x, groundY, p.w, p.h); break;
+      case 'village': drawVillageHouse(x, groundY, p.w, p.h); break;
+      case 'ruin': drawRuin(x, groundY, p.w, p.h); break;
+      case 'bunker': drawBunker(x, groundY); break;
+      case 'trench': drawTrench(x, groundY, p.w); break;
+      case 'hedgehog': drawHedgehog(x, groundY); break;
+      case 'wall': drawStoneWall(x, groundY, p.w); break;
+    }
+  }
+}
+
+function drawPine(x, gy){
+  drawShadow(x, gy+2, 11, 3);
+  ctx.fillStyle='#4a3626';
+  ctx.fillRect(x-2, gy-6, 4, 14);
+  ctx.fillStyle='rgba(20,25,15,0.55)';
+  for(let i=0;i<3;i++){
+    const w=26-i*7, y=gy-8-i*13;
+    ctx.beginPath(); ctx.moveTo(x-w/2,y); ctx.lineTo(x+w/2,y); ctx.lineTo(x,y-18); ctx.closePath(); ctx.fill();
+  }
+}
+function drawPalm(x, gy){
+  drawShadow(x, gy+2, 10, 3);
+  ctx.strokeStyle='#5a4630'; ctx.lineWidth=5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x,gy); ctx.quadraticCurveTo(x+6,gy-30,x+2,gy-50); ctx.stroke();
+  ctx.strokeStyle='rgba(35,60,25,0.6)'; ctx.lineWidth=4;
+  for(let i=0;i<5;i++){
+    const ang = (i/5)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(x+2,gy-50);
+    ctx.quadraticCurveTo(x+2+Math.cos(ang)*18, gy-50+Math.sin(ang)*8-10, x+2+Math.cos(ang)*30, gy-50+Math.sin(ang)*14);
+    ctx.stroke();
+  }
+}
+function drawDeadTree(x, gy){
+  drawShadow(x, gy+2, 8, 2.4);
+  ctx.strokeStyle='rgba(50,45,40,0.7)'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(x,gy); ctx.lineTo(x-2,gy-34); ctx.stroke();
+  ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x-2,gy-24); ctx.lineTo(x-14,gy-32); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-2,gy-30); ctx.lineTo(x+10,gy-40); ctx.stroke();
+}
+function drawHangar(x, gy, w, h){
+  drawShadow(x, gy+2, w*0.42, 4);
+  ctx.fillStyle='rgba(150,150,145,0.5)';
+  ctx.beginPath();
+  ctx.moveTo(x-w/2, gy);
+  ctx.lineTo(x-w/2, gy-h*0.4);
+  ctx.quadraticCurveTo(x, gy-h, x+w/2, gy-h*0.4);
+  ctx.lineTo(x+w/2, gy);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(90,90,86,0.35)';
+  ctx.beginPath();
+  ctx.moveTo(x+w*0.1, gy);
+  ctx.lineTo(x+w*0.1, gy-h*0.42);
+  ctx.quadraticCurveTo(x+w*0.28, gy-h*0.85, x+w/2, gy-h*0.4);
+  ctx.lineTo(x+w/2, gy);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(60,55,50,0.5)'; ctx.lineWidth=1; ctx.stroke();
+}
+function drawVillageHouse(x, gy, w, h){
+  drawShadow(x, gy+2, w*0.5, 4);
+  draw3DBox(x, gy, w, h*0.6, 'rgba(150,120,95,0.6)', 'rgba(182,152,122,0.55)', 'rgba(100,80,60,0.55)');
+  ctx.fillStyle='rgba(100,55,45,0.65)';
+  ctx.beginPath();
+  ctx.moveTo(x-w/2-4, gy-h*0.6);
+  ctx.lineTo(x, gy-h);
+  ctx.lineTo(x+w/2+10, gy-h*0.6);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(40,35,30,0.6)';
+  ctx.fillRect(x-6, gy-h*0.32, 9, h*0.32);
+}
+function drawRuin(x, gy, w, h){
+  drawShadow(x, gy+2, w*0.42, 4);
+  ctx.fillStyle='rgba(110,105,95,0.5)';
+  ctx.beginPath();
+  ctx.moveTo(x-w/2, gy);
+  ctx.lineTo(x-w/2, gy-h*0.5);
+  ctx.lineTo(x-w/4, gy-h*0.8);
+  ctx.lineTo(x+w/6, gy-h*0.45);
+  ctx.lineTo(x+w/2, gy-h*0.6);
+  ctx.lineTo(x+w/2, gy);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(50,45,40,0.5)'; ctx.stroke();
+}
+function drawBunker(x, gy){
+  drawShadow(x, gy+2, 18, 4);
+  draw3DBox(x, gy, 30, 15, 'rgba(115,116,104,0.65)', 'rgba(152,152,140,0.6)', 'rgba(70,70,62,0.6)');
+  ctx.fillStyle='rgba(20,19,14,0.75)';
+  ctx.fillRect(x-9, gy-11, 18, 4);
+}
+function drawTrench(x, gy, w){
+  drawShadow(x, gy+3, w*0.48, 5);
+  const grad = ctx.createLinearGradient(x, gy-5, x, gy+8);
+  grad.addColorStop(0,'rgba(40,32,20,0.75)');
+  grad.addColorStop(0.5,'rgba(26,20,13,0.8)');
+  grad.addColorStop(1,'rgba(18,14,9,0.75)');
+  ctx.fillStyle=grad;
+  ctx.fillRect(x-w/2, gy-5, w, 13);
+  ctx.strokeStyle='rgba(15,12,8,0.7)'; ctx.lineWidth=1;
+  ctx.strokeRect(x-w/2, gy-5, w, 13);
+
+  const bagCount = Math.max(3,Math.floor(w/13));
+  for(let i=0;i<bagCount;i++){
+    const bx = x-w/2+8+i*13;
+    ctx.fillStyle = i%2===0 ? 'rgba(150,128,84,0.6)' : 'rgba(128,108,70,0.6)';
+    ctx.beginPath(); ctx.ellipse(bx, gy-6, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(60,48,30,0.5)'; ctx.lineWidth=0.8; ctx.stroke();
+  }
+  for(let i=0;i<bagCount;i++){
+    const bx = x-w/2+8+i*13;
+    ctx.fillStyle = i%2===0 ? 'rgba(120,102,66,0.55)' : 'rgba(102,86,54,0.55)';
+    ctx.beginPath(); ctx.ellipse(bx, gy+9, 7, 4, 0, 0, Math.PI*2); ctx.fill();
+  }
+
+  ctx.strokeStyle='rgba(40,40,36,0.65)'; ctx.lineWidth=1.4;
+  for(let i=0;i<Math.max(2,Math.floor(w/34));i++){
+    const px = x-w/2+14+i*34, py=gy+17;
+    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px,py-9); ctx.stroke();
+    for(let k=0;k<3;k++){
+      ctx.beginPath();
+      ctx.moveTo(px-6,py-2-k*3); ctx.lineTo(px+6,py-5-k*3);
+      ctx.stroke();
+    }
+  }
+}
+function drawHedgehog(x, gy){
+  drawShadow(x, gy+2, 12, 3);
+  ctx.strokeStyle='rgba(70,68,62,0.75)'; ctx.lineWidth=2.4;
+  const y=gy-4, s=13;
+  ctx.beginPath(); ctx.moveTo(x-s,y-s); ctx.lineTo(x+s,y+s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x-s,y+s); ctx.lineTo(x+s,y-s); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y-s*1.3); ctx.lineTo(x,y+s*0.6); ctx.stroke();
+}
+function drawStoneWall(x, gy, w){
+  draw3DBox(x, gy, w, 18, 'rgba(140,132,112,0.6)', 'rgba(172,162,140,0.55)', 'rgba(90,84,70,0.55)');
+  ctx.strokeStyle='rgba(70,65,55,0.5)'; ctx.lineWidth=1;
+  for(let i=0;i<w;i+=14){ ctx.beginPath(); ctx.moveTo(x-w/2+i, gy-18); ctx.lineTo(x-w/2+i, gy); ctx.stroke(); }
+}
+
+/* ===================== UNIT SPRITES ===================== */
+
+function rowOffset(row){ return (row===0? -14 : (row===2? 14 : 0)); }
+function rowScale(row){ return row===0? 0.88 : (row===2? 1.12 : 1.0); }
+
+function drawTinySoldier(ox, oy, fill, facing, prone){
+  ctx.save();
+  ctx.translate(ox,oy);
+  if(prone){
+    ctx.fillStyle=fill;
+    ctx.fillRect(-6,1,11,3.2);
+    ctx.strokeStyle='#201f19'; ctx.lineWidth=0.7; ctx.strokeRect(-6,1,11,3.2);
+    ctx.fillStyle='rgba(20,19,14,0.75)';
+    ctx.beginPath(); ctx.arc(5*facing,1.8,2.1,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#201f19'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(6*facing,1.6); ctx.lineTo(14*facing,1.1); ctx.stroke();
+  } else {
+    ctx.fillStyle='rgba(20,19,14,0.5)';
+    ctx.fillRect(-2,3,4,4);
+    ctx.fillStyle=fill;
+    ctx.fillRect(-3,-4,6,7);
+    ctx.strokeStyle='#201f19'; ctx.lineWidth=0.8; ctx.strokeRect(-3,-4,6,7);
+    ctx.fillStyle='rgba(20,19,14,0.75)';
+    ctx.beginPath(); ctx.arc(0,-5,2.6,Math.PI,0); ctx.fill();
+    ctx.strokeStyle='#201f19'; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(2*facing,-2); ctx.lineTo(8*facing,-1); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawInfantrySquad(fill, facing, hpPct, prone){
+  const positions = [[-6,-4],[4,-6],[-4,4],[6,3]];
+  const count = Math.max(1, Math.min(4, Math.ceil((hpPct>0?hpPct:0.01)*4)));
+  for(let i=0;i<count;i++){
+    drawTinySoldier(positions[i][0], positions[i][1], fill, facing, prone);
+  }
+}
+function drawMgTeam(fill, facing, hpPct){
+  ctx.fillStyle='rgba(120,102,66,0.6)';
+  ctx.beginPath(); ctx.ellipse(-2,9,13,4,0,0,Math.PI*2); ctx.fill();
+  if(hpPct>0.5){
+    drawTinySoldier(-6*facing, -2, fill, facing);
+  }
+  ctx.save();
+  ctx.translate(4*facing, 2);
+  ctx.fillStyle=fill;
+  ctx.fillRect(-5,-5,11,9);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1; ctx.strokeRect(-5,-5,11,9);
+  ctx.fillStyle='rgba(20,19,14,0.75)';
+  ctx.beginPath(); ctx.arc(0,-6,3,Math.PI,0); ctx.fill();
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=2.2;
+  ctx.beginPath(); ctx.moveTo(2*facing,0); ctx.lineTo(20*facing,-2); ctx.stroke();
+  ctx.restore();
+}
+function drawSniperSprite(fill, facing, hpPct){
+  ctx.save();
+  ctx.fillStyle='rgba(40,44,30,0.55)';
+  ctx.fillRect(-7,3,14,5);
+  ctx.fillStyle=fill;
+  ctx.fillRect(-5,-4,10,8);
+  ctx.strokeStyle='#151510'; ctx.lineWidth=1; ctx.strokeRect(-5,-4,10,8);
+  ctx.fillStyle='rgba(15,15,10,0.8)';
+  ctx.beginPath(); ctx.arc(0,-5,3,Math.PI,0); ctx.fill();
+  ctx.strokeStyle='#151510'; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.moveTo(4*facing,-2); ctx.lineTo(26*facing,-3); ctx.stroke();
+  ctx.fillStyle='rgba(210,220,190,0.8)';
+  ctx.beginPath(); ctx.arc(14*facing,-3,1.4,0,Math.PI*2); ctx.fill();
+  const dmg = 1-(hpPct||0);
+  if(dmg>0.15){
+    ctx.fillStyle = `rgba(95,26,20,${Math.min(0.6,dmg*0.65)})`;
+    ctx.beginPath(); ctx.ellipse(-1,0,6,3.6,0.2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = `rgba(55,44,22,${Math.min(0.55,dmg*0.55)})`;
+    ctx.beginPath(); ctx.ellipse(2,3,4,2.6,0,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawFireFlicker(x,y,seed){
+  const t = ((G.elapsed*5 + seed)%1);
+  ctx.fillStyle='rgba(80,80,76,'+(0.32*(1-t*0.5))+')';
+  ctx.beginPath(); ctx.arc(x, y-6-t*14, 3+t*5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,140,40,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(x,y);
+  ctx.quadraticCurveTo(x-4,y-5-t*2, x, y-11-t*3);
+  ctx.quadraticCurveTo(x+4,y-5-t*2, x, y);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,215,130,0.9)';
+  ctx.beginPath(); ctx.arc(x,y-3,2,0,Math.PI*2); ctx.fill();
+}
+function drawArtillerySprite(fill, facing, hpPct){
+  ctx.fillStyle='#33322b';
+  ctx.beginPath(); ctx.arc(-7,9,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7,9,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=fill;
+  ctx.fillRect(-10,-2,20,9);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1; ctx.strokeRect(-10,-2,20,9);
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.fillRect(-10,-2,20,2.4);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,-2); ctx.lineTo(22*facing,-16); ctx.stroke();
+  const dmg = 1-(hpPct||0);
+  if(dmg>0.35){
+    ctx.fillStyle = `rgba(20,18,15,${Math.min(0.55,dmg*0.5)})`;
+    ctx.beginPath(); ctx.ellipse(-3,-1,7,4.5,0,0,Math.PI*2); ctx.fill();
+  }
+  if((hpPct||0) < 0.3){
+    drawFireFlicker(2*facing, -6, 0.3);
+  }
+}
+function drawTankSprite(fill, facing, hpPct){
+  ctx.fillStyle='#26251f';
+  ctx.fillRect(-15,4,30,8);
+  for(let i=-12;i<=12;i+=6){ ctx.fillStyle='#3a3830'; ctx.beginPath(); ctx.arc(i,8,3,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle=fill;
+  ctx.fillRect(-14,-6,28,11);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1; ctx.strokeRect(-14,-6,28,11);
+  ctx.fillStyle='rgba(255,255,255,0.12)';
+  ctx.fillRect(-14,-6,28,2.4);
+  ctx.fillStyle=fill;
+  ctx.fillRect(-6,-11,12,7);
+  ctx.strokeStyle='#201f19'; ctx.strokeRect(-6,-11,12,7);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(4*facing,-8); ctx.lineTo(22*facing,-8); ctx.stroke();
+  const dmg = 1-(hpPct||0);
+  if(dmg>0.35){
+    ctx.fillStyle = `rgba(20,18,15,${Math.min(0.55,dmg*0.5)})`;
+    ctx.beginPath(); ctx.ellipse(-2,-3,8,5,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(8,2,5,3.4,0,0,Math.PI*2); ctx.fill();
+  }
+  if((hpPct||0) < 0.3){
+    drawFireFlicker(-4*facing, -9, 0.7);
+  }
+}
+
+const SPRITE_SCALE = 1.4;
+
+function drawCorpse(x, y, c){
+  const fadeStart = 2.5;
+  const alpha = c.timer < fadeStart ? Math.max(0, c.timer/fadeStart) : 1;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y+8);
+  if(c.type==='tank' || c.type==='artillery'){
+    ctx.fillStyle='rgba(12,11,9,0.4)';
+    ctx.beginPath(); ctx.ellipse(0,6,24,8,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(28,26,22,0.85)';
+    ctx.fillRect(-18,-4,36,11);
+    ctx.strokeStyle='rgba(10,9,7,0.6)'; ctx.lineWidth=1; ctx.strokeRect(-18,-4,36,11);
+    ctx.fillStyle='rgba(18,17,14,0.8)';
+    ctx.fillRect(-6,-9,13,6);
+    for(let i=0;i<3;i++){
+      const t = ((G.elapsed*0.35)+i*0.6)%1;
+      ctx.fillStyle = `rgba(110,108,102,${(1-t)*0.3})`;
+      ctx.beginPath(); ctx.arc(-6+i*7, -10-t*22, 4+t*6, 0, Math.PI*2); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle='rgba(10,9,7,0.32)';
+    ctx.beginPath(); ctx.ellipse(0,4,13,4,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(45,43,36,0.8)';
+    ctx.beginPath(); ctx.ellipse(0,1,11,3.6,0.25,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(20,19,14,0.7)';
+    ctx.beginPath(); ctx.arc(-8,1,3,0,Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawUnitSprite(x, y, u, scale){
+  scale = (scale || 1) * SPRITE_SCALE;
+  const pat = ensurePatterns();
+  const fill = u.side==='player' ? pat.player : pat.enemy;
+  const facing = u.side==='player' ? 1 : -1;
+  const hpPct = Math.max(0, u.hp/u.maxHp);
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(scale, scale);
+  drawShadow(0, 13, 15, 4);
+  switch(u.type){
+    case 'infantry': drawInfantrySquad(fill, facing, hpPct, !!u.suppressed); break;
+    case 'mg': drawMgTeam(fill, facing, hpPct); break;
+    case 'sniper': drawSniperSprite(fill, facing, hpPct); break;
+    case 'artillery': drawArtillerySprite(fill, facing, hpPct); break;
+    case 'tank': drawTankSprite(fill, facing, hpPct); break;
+  }
+  ctx.restore();
+  drawHpBar(x, y+18*scale, hpPct);
+}
+
+function drawHpBar(x,y,pct){
+  pct = Math.max(0,pct);
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.fillRect(x-13, y, 26, 3);
+  ctx.fillStyle = pct>0.5 ? '#79883a' : (pct>0.2 ? '#b8933c' : '#a13d2b');
+  ctx.fillRect(x-13, y, 26*pct, 3);
+}
+
+function drawBase(cx, groundY, colorFront, colorTop, colorSide, label){
+  draw3DBox(cx, groundY, 28, 46, colorFront, colorTop, colorSide);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(cx-10, groundY-46); ctx.lineTo(cx-10, groundY-58); ctx.stroke();
+  ctx.fillStyle=colorFront;
+  ctx.fillRect(cx-10, groundY-58, 10, 7);
+  ctx.fillStyle = '#eee5c4';
+  ctx.font = '11px Archivo, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(label, cx, groundY-20);
+}
+
+function drawConvoySprite(x, groundY, hpPct){
+  drawShadow(x, groundY+13, 20, 4);
+  const pat = ensurePatterns();
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.fillStyle='#2a2822';
+  ctx.fillRect(-18,2,36,9);
+  for(let i=-13;i<=13;i+=8){ ctx.fillStyle='#3a3830'; ctx.beginPath(); ctx.arc(i,11,3.4,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle=pat.player;
+  ctx.fillRect(-16,-9,20,11);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1; ctx.strokeRect(-16,-9,20,11);
+  ctx.fillStyle='rgba(20,19,14,0.7)';
+  ctx.fillRect(-13,-7,7,6);
+  ctx.fillStyle=pat.player;
+  ctx.fillRect(6,-3,10,5);
+  ctx.strokeRect(6,-3,10,5);
+  ctx.restore();
+  drawHpBar(x, groundY+18, hpPct);
+  ctx.fillStyle='#eee5c4';
+  ctx.font = '10px Archivo, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('CONVOY', x, groundY-16);
+}
+
+function drawDemoTarget(x, groundY, hpPct, destroyed){
+  drawShadow(x, groundY+15, 22, 5);
+  ctx.save();
+  ctx.translate(x, groundY);
+  const dead = destroyed || hpPct<=0;
+  const drumFill = dead ? 'rgba(40,36,30,0.7)' : 'rgba(150,90,40,0.75)';
+  for(let i=-1;i<=1;i++){
+    ctx.fillStyle = drumFill;
+    ctx.fillRect(-8+i*13, -2, 11, 16);
+    ctx.strokeStyle='#201f19'; ctx.lineWidth=1;
+    ctx.strokeRect(-8+i*13, -2, 11, 16);
+  }
+  ctx.fillStyle='rgba(90,90,84,0.6)';
+  ctx.fillRect(-24,12,48,6);
+  if(dead){
+    for(let i=0;i<3;i++){
+      const t = ((G.elapsed*0.4)+i*0.6)%1;
+      ctx.fillStyle = `rgba(90,88,82,${(1-t)*0.35})`;
+      ctx.beginPath(); ctx.arc(-6+i*7, -6-t*24, 4+t*6, 0, Math.PI*2); ctx.fill();
+    }
+  } else if(hpPct<0.4){
+    drawFireFlicker(0, -4, 0.5);
+  }
+  ctx.restore();
+  if(!dead) drawHpBar(x, groundY+20, hpPct);
+  ctx.fillStyle='#eee5c4';
+  ctx.font = '10px Archivo, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(dead ? 'DEPOT DESTROYED' : 'FUEL DEPOT', x, groundY-16);
+}
+
+/* ===================== EFFECTS RENDERING ===================== */
+
+function drawEffects(w, groundY){
+  for(const e of G.effects){
+    const age = G.elapsed - e.born;
+    const t = Math.max(0, Math.min(1, age/e.dur));
+    const x1 = laneToPx(e.x1, w), x2 = laneToPx(e.x2, w);
+    const y = groundY - 10;
+    if(e.type==='tracer'){
+      const cx = x1 + (x2-x1)*Math.min(1, t*2.4);
+      ctx.strokeStyle = e.hit ? `rgba(255,214,120,${1-t})` : `rgba(210,205,190,${(1-t)*0.55})`;
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(cx,y); ctx.stroke();
+      if(t<0.35){
+        ctx.fillStyle=`rgba(255,225,140,${1-t/0.35})`;
+        ctx.beginPath(); ctx.arc(x1,y,5,0,Math.PI*2); ctx.fill();
+      }
+    } else if(e.type==='shell'){
+      const cx = x1 + (x2-x1)*t;
+      const cy = y - Math.sin(Math.PI*t)*42;
+      ctx.fillStyle='rgba(60,55,45,0.85)';
+      ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+      if(t>0.85){
+        const burstT = (t-0.85)/0.15;
+        const r = 10 + burstT*30;
+        ctx.strokeStyle = e.hit ? `rgba(161,61,43,${1-burstT})` : `rgba(160,150,130,${(1-burstT)*0.6})`;
+        ctx.lineWidth=3;
+        ctx.beginPath(); ctx.arc(x2,y,r,0,Math.PI*2); ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawFloatingText(w, groundY){
+  ctx.textAlign='center';
+  ctx.font='bold 12px Archivo, sans-serif';
+  for(const f of G.floatingText){
+    const age = G.elapsed - f.born;
+    const alpha = Math.max(0, 1-age);
+    const x = laneToPx(f.x, w);
+    const y = groundY - 26 - age*30;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, x, y);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ===================== MAIN RENDER ===================== */
+
+function render(){
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const groundY = h*0.62;
+  ctx.clearRect(0,0,w,h);
+
+  ctx.save();
+  if(G.shakeTime>0){
+    const s = G.shakeMag * (G.shakeTime/G.shakeDur);
+    ctx.translate((Math.random()*2-1)*s*4, (Math.random()*2-1)*s*4);
+  }
+
+  drawEnvironment(w, h, groundY);
+
+  const frontPx = laneToPx(G.frontLine, w);
+  ctx.fillStyle = 'rgba(73,83,31,0.16)';
+  ctx.fillRect(0,0,frontPx,h);
+  ctx.fillStyle = 'rgba(40,42,38,0.18)';
+  ctx.fillRect(frontPx,0,w-frontPx,h);
+
+  ctx.save();
+  ctx.setLineDash([8,6]);
+  ctx.strokeStyle = 'rgba(20,19,14,0.55)';
+  ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(frontPx,0); ctx.lineTo(frontPx,h); ctx.stroke();
+  ctx.restore();
+
+  G.objectives.forEach(o=>{
+    const x = laneToPx(o.x, w);
+    ctx.strokeStyle = '#201f19'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x, groundY+26); ctx.lineTo(x, groundY-30); ctx.stroke();
+    ctx.fillStyle = o.captured ? '#79883a' : '#b8933c';
+    ctx.beginPath();
+    ctx.moveTo(x, groundY-30); ctx.lineTo(x+16, groundY-24); ctx.lineTo(x, groundY-18); ctx.closePath();
+    ctx.fill();
+  });
+
+  drawBase(laneToPx(0,w), groundY, '#49531f', '#79883a', '#33390f', 'HQ');
+  drawBase(laneToPx(G.laneLength,w), groundY, '#454a42', '#767e70', '#2c2f29', currentPhaseType()==='defense' ? '\u221e' : 'HQ');
+
+  if(G.convoy){
+    drawConvoySprite(laneToPx(G.convoy.x, w), groundY-4, Math.max(0,G.convoy.hp/G.convoy.maxHp));
+  }
+  if(G.demoTarget){
+    drawDemoTarget(laneToPx(G.demoTarget.x, w), groundY-2, Math.max(0,G.demoTarget.hp/G.demoTarget.maxHp), G.demoTarget.destroyed);
+  }
+
+  for(const c of G.corpses){
+    let x, y;
+    if(c.trenchRef){
+      const spacing = Math.max(12,(c.trenchRef.w||70)/4);
+      const slotOffset = (c.trenchSlot!=null ? (c.trenchSlot-1)*spacing : 0);
+      x = laneToPx(c.trenchRef.x, w) + slotOffset;
+      y = groundY-6;
+    } else {
+      x = laneToPx(c.x, w);
+      y = groundY-10+rowOffset(c.row);
+    }
+    drawCorpse(x, y, c);
+  }
+
+  for(const u of G.units){
+    const x = laneToPx(u.x, w);
+    if(u.inTrench){
+      const tr = G.trenches.find(t=>t.occupants.includes(u.id));
+      const spacing = tr ? Math.max(12,(tr.w||70)/4) : 14;
+      const slotOffset = (u.trenchSlot!=null ? (u.trenchSlot-1)*spacing : 0);
+      drawUnitSprite(x+slotOffset, groundY-6, u, 0.85);
+    } else {
+      drawUnitSprite(x, groundY-10+rowOffset(u.row), u, rowScale(u.row));
+    }
+  }
+
+  drawEffects(w, groundY);
+  drawFloatingText(w, groundY);
+  updateTrenchControls(w, groundY);
+  positionCoverLockButtons(w, groundY);
+
+  if(G.precip){
+    if(G.precip.type==='snow'){
+      ctx.fillStyle='rgba(255,255,255,0.85)';
+      for(const f of G.precip.items){
+        f.y += 0.0016*f.s;
+        if(f.y>1) f.y=0;
+        ctx.beginPath(); ctx.arc(f.x*w, f.y*h, f.r, 0, Math.PI*2); ctx.fill();
+      }
+    } else if(G.precip.type==='rain'){
+      ctx.strokeStyle='rgba(200,210,215,0.35)';
+      ctx.lineWidth=1;
+      for(const f of G.precip.items){
+        f.y += 0.01*f.s;
+        if(f.y>1) f.y=0;
+        const px=f.x*w, py=f.y*h;
+        ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-3,py+12); ctx.stroke();
+      }
+    }
+  }
+
+  ctx.restore();
+
+  drawMinimap();
+}
+
+function drawMinimap(){
+  const mw = minimapCanvas.clientWidth, mh = minimapCanvas.clientHeight;
+  minimapCtx.clearRect(0,0,mw,mh);
+  const frac = (x)=> (x/G.laneLength)*mw;
+  const splitX = frac(G.frontLine);
+
+  const gradL = minimapCtx.createLinearGradient(0,0,splitX,0);
+  gradL.addColorStop(0,'#3c4419'); gradL.addColorStop(1,'#5d6b28');
+  minimapCtx.fillStyle = gradL;
+  minimapCtx.fillRect(0,0,splitX,mh);
+
+  const gradR = minimapCtx.createLinearGradient(splitX,0,mw,0);
+  gradR.addColorStop(0,'#4a4d45'); gradR.addColorStop(1,'#33352f');
+  minimapCtx.fillStyle = gradR;
+  minimapCtx.fillRect(splitX,0,mw-splitX,mh);
+
+  minimapCtx.strokeStyle='rgba(238,229,196,0.9)';
+  minimapCtx.lineWidth=2;
+  minimapCtx.beginPath(); minimapCtx.moveTo(splitX,0); minimapCtx.lineTo(splitX,mh); minimapCtx.stroke();
+
+  minimapCtx.fillStyle='#b8933c';
+  G.objectives.forEach(o=>{
+    const x = frac(o.x);
+    minimapCtx.beginPath();
+    minimapCtx.moveTo(x,mh/2-5); minimapCtx.lineTo(x+4,mh/2); minimapCtx.lineTo(x,mh/2+5); minimapCtx.lineTo(x-4,mh/2);
+    minimapCtx.closePath();
+    minimapCtx.fillStyle = o.captured ? '#79883a' : '#b8933c';
+    minimapCtx.fill();
+  });
+
+  const vx1 = frac(G.camera.x - G.camera.viewWidth/2);
+  const vx2 = frac(G.camera.x + G.camera.viewWidth/2);
+  minimapCtx.strokeStyle='rgba(238,229,196,0.95)';
+  minimapCtx.lineWidth=1.5;
+  minimapCtx.strokeRect(vx1+1, 1, Math.max(2,vx2-vx1-2), mh-2);
+}
+
+/* ===================== HUD UPDATE ===================== */
+
+function updateHud(){
+  el('stat-supply').textContent = Math.floor(G.supply);
+  el('bar-player').style.width = Math.max(0,(G.playerBase.hp/G.playerBase.maxHp*100))+'%';
+  if(currentPhaseType()==='defense'){
+    el('stat-timer').textContent = formatTime(Math.max(0, G.surviveTime - phaseElapsed()));
+  } else {
+    let pct = 0;
+    if(G.mission.mode==='escort') pct = Math.max(0, G.convoy.hp/G.convoy.maxHp*100);
+    else if(G.mission.mode==='demolition') pct = Math.max(0, G.demoTarget.hp/G.demoTarget.maxHp*100);
+    else pct = Math.max(0, G.enemyBase.hp/G.enemyBase.maxHp*100);
+    el('bar-enemy').style.width = pct+'%';
+  }
+  UNIT_ORDER.forEach(key=>{
+    const u = UNIT_TYPES[key];
+    const btn = el('unit-btn-'+key);
+    const veil = el('veil-'+key);
+    const cd = G.cooldowns[key];
+    const affordable = G.supply >= u.cost;
+    btn.disabled = !affordable || cd>0;
+    veil.style.height = cd>0 ? Math.min(100,(cd/u.cooldown*100))+'%' : '0%';
+  });
+}
+
+/* ===================== LOOP ===================== */
+
+function loop(ts){
+  rafId = requestAnimationFrame(loop);
+  const dt = Math.min(0.05, (ts-lastTs)/1000);
+  lastTs = ts;
+  if(paused || !G || G.over) { render(); return; }
+  step(dt);
+  render();
+  updateHud();
+}
+
+/* ===================== CONTROLS ===================== */
+
+el('btn-pause').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
+el('btn-resume').addEventListener('click', ()=>{ paused = false; el('overlay-pause').classList.remove('active'); lastTs = performance.now(); });
+el('btn-pause-quit').addEventListener('click', backToBriefing);
+el('btn-quit').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
+el('btn-back-briefing').addEventListener('click', backToBriefing);
+el('btn-retry').addEventListener('click', ()=>{ if(G) startMission(G.mission.id); });
+
+function backToBriefing(){
+  paused = false;
+  if(rafId) cancelAnimationFrame(rafId);
+  el('overlay-pause').classList.remove('active');
+  el('overlay-result').classList.remove('active');
+  screenGame.classList.remove('active');
+  screenBriefing.classList.add('active');
+  G = null;
+  refreshPinStates();
+  if(selectedMissionId){
+    const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
+    if(m) renderMissionPanel(m);
+  }
+  Music.start('menu');
+}
+
+window.addEventListener('keydown', (e)=>{
+  if(!G || G.over) return;
+  if(e.key===' '){ e.preventDefault(); paused = !paused; el('overlay-pause').classList.toggle('active', paused); if(!paused) lastTs=performance.now(); return; }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); panCameraBy(-60); return; }
+  if(e.key==='ArrowRight'){ e.preventDefault(); panCameraBy(60); return; }
+  const idx = parseInt(e.key,10);
+  if(idx>=1 && idx<=UNIT_ORDER.length && !paused){ deployPlayerUnit(UNIT_ORDER[idx-1]); }
+});
+
+/* ---- camera drag-to-pan on the battlefield canvas ---- */
+let dragging=false, dragStartClientX=0, dragStartCameraX=0;
+canvas.addEventListener('pointerdown', (e)=>{
+  if(!G) return;
+  dragging=true;
+  dragStartClientX = e.clientX;
+  dragStartCameraX = G.camera.x;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e)=>{
+  if(!dragging || !G) return;
+  const deltaPx = e.clientX - dragStartClientX;
+  const worldPerPx = G.camera.viewWidth / canvas.clientWidth;
+  G.camera.x = dragStartCameraX - deltaPx*worldPerPx;
+  clampCamera();
+});
+function endDrag(){ dragging=false; }
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('pointerleave', endDrag);
+
+/* ---- nav buttons ---- */
+el('cam-left').addEventListener('click', ()=> panCameraBy(-150));
+el('cam-right').addEventListener('click', ()=> panCameraBy(150));
+el('cam-home').addEventListener('click', ()=>{
+  if(!G) return;
+  G.camera.x = G.camera.viewWidth*0.58;
+  clampCamera();
+});
+
+/* ---- click the mini-map to jump the camera there ---- */
+minimapCanvas.addEventListener('click', (e)=>{
+  if(!G) return;
+  const rect = minimapCanvas.getBoundingClientRect();
+  const frac = (e.clientX-rect.left)/rect.width;
+  G.camera.x = frac*G.laneLength;
+  clampCamera();
+});
+
+/* ---- music: unlock audio on first user gesture, wire up mute toggle ---- */
+let audioUnlocked = false;
+function unlockAudioOnce(){
+  if(audioUnlocked) return;
+  audioUnlocked = true;
+  Music.ensureCtx();
+  if(!Music.isMuted() && !G) Music.start('menu');
+  window.removeEventListener('pointerdown', unlockAudioOnce);
+  window.removeEventListener('keydown', unlockAudioOnce);
+}
+window.addEventListener('pointerdown', unlockAudioOnce);
+window.addEventListener('keydown', unlockAudioOnce);
+
+el('btn-mute').addEventListener('click', ()=>{
+  const isMuted = Music.toggleMuted();
+  el('btn-mute').innerHTML = isMuted ? '&#128263;' : '&#128266;';
+  if(!isMuted && audioUnlocked && !G){ Music.start('menu'); }
+});
+
+el('cinematic-skip').addEventListener('click', ()=>{
+  if(inCinematic) endCinematic();
+});
+
+})();
+</script>
+</body>
+</html>
