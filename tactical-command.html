@@ -40,6 +40,32 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 /* ---------- BRIEFING SCREEN ---------- */
 #screen-briefing{ padding: 32px 24px 60px; max-width:1180px; margin:0 auto; }
 .briefing-header{ text-align:center; margin-bottom:28px; }
+
+.mainmenu-wrap{ max-width:900px; margin:0 auto; padding:80px 24px; text-align:center; }
+.mainmenu-wrap h1{ font-size:clamp(48px,8vw,80px); color:var(--parchment-2); text-shadow:0 2px 0 rgba(0,0,0,0.5); margin:0 0 10px; }
+.mainmenu-tagline{ color:var(--parchment-dim); font-size:16px; margin-bottom:44px; }
+.mainmenu-cards{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
+.mode-card{
+  background:linear-gradient(180deg, var(--panel-2), var(--panel)); border:1px solid var(--line);
+  border-left:5px solid var(--olive); padding:26px 22px; text-align:left; cursor:pointer;
+  color:var(--parchment); font-family:'Archivo',sans-serif;
+}
+.mode-card:hover{ border-color:var(--brass); transform:translateY(-2px); }
+.mode-card-title{ font-family:'Staatliches',sans-serif; font-size:28px; color:var(--parchment-2); margin-bottom:8px; }
+.mode-card-desc{ font-size:13.5px; color:var(--parchment-dim); line-height:1.5; }
+.mainmenu-footer{ margin-top:50px; font-size:12px; color:var(--parchment-dim); opacity:0.7; }
+
+.ls-summary-row{ display:flex; justify-content:center; gap:30px; margin-bottom:22px; }
+.ls-start-wave-btn{
+  margin-top:5px; font-size:11px; padding:4px 10px; width:100%;
+  background:rgba(184,147,60,0.18); border:1px solid var(--brass); color:var(--brass);
+  border-radius:4px; cursor:pointer; text-transform:uppercase; letter-spacing:0.04em;
+}
+.ls-start-wave-btn:hover{ background:rgba(184,147,60,0.32); }
+.ls-summary-stat{ text-align:center; }
+.ls-summary-stat .num{ font-size:24px; font-weight:700; color:var(--brass); }
+.ls-summary-stat .lbl{ font-size:11px; color:var(--parchment-dim); text-transform:uppercase; letter-spacing:0.05em; }
+
 .briefing-header h1{ font-size:clamp(42px,7vw,72px); margin:0 0 6px; color:var(--parchment-2); text-shadow:0 2px 0 rgba(0,0,0,0.5); }
 .briefing-header p{ color:var(--parchment-dim); font-size:16px; max-width:560px; margin:0 auto; line-height:1.5; }
 
@@ -373,8 +399,50 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
 
 <div id="root">
 
+  <!-- ============ MAIN MENU SCREEN ============ -->
+  <section id="screen-mainmenu" class="screen active">
+    <div class="mainmenu-wrap">
+      <h1>Tactical Command</h1>
+      <p class="mainmenu-tagline">A WWII tactical lane-battle. Choose your war.</p>
+      <div class="mainmenu-cards">
+        <button class="mode-card" id="btn-mode-campaign">
+          <div class="mode-card-title">Campaign</div>
+          <div class="mode-card-desc">Twelve historical operations, in order — from the Battle of Britain to Okinawa. Earn skill points, unlock upgrades, and push through the whole war.</div>
+        </button>
+        <button class="mode-card" id="btn-mode-laststand">
+          <div class="mode-card-title">Last Stand</div>
+          <div class="mode-card-desc">An endless defense on a random battlefield. Start with nothing but 3 Rifle Squads — every kill earns supply and experience. Survive as many waves as you can.</div>
+        </button>
+      </div>
+      <div class="mainmenu-footer">A tribute to those who served — simplified for gameplay, not a historical simulation.</div>
+    </div>
+  </section>
+
+  <!-- ============ LAST STAND MENU SCREEN ============ -->
+  <section id="screen-laststand-menu" class="screen">
+    <div class="briefing-header">
+      <h1>Last Stand</h1>
+      <p>An endless defense on a random battlefield. You start with nothing but 3 Rifle Squads and zero supply — every kill earns you supply to spend and experience toward your next pick. Survive as long as you can.</p>
+    </div>
+    <div class="ls-summary-row">
+      <div class="ls-summary-stat"><div class="num" id="ls-points-display">0</div><div class="lbl">Last Stand Points</div></div>
+      <div class="ls-summary-stat"><div class="num" id="ls-best-wave">0</div><div class="lbl">Best Wave</div></div>
+      <div class="ls-summary-stat"><div class="num" id="ls-best-time">0:00</div><div class="lbl">Longest Stand</div></div>
+    </div>
+    <div class="upgrades-list" id="ls-shop-list"></div>
+    <div class="mainmenu-cards" style="margin-top:20px;">
+      <button class="mode-card" id="btn-start-laststand">
+        <div class="mode-card-title">Start Run &#9654;</div>
+        <div class="mode-card-desc">Deploy onto a random battlefield and hold as long as you can.</div>
+      </button>
+    </div>
+    <div class="briefing-footer">
+      <button class="reset-progress-btn" id="btn-laststand-to-mainmenu">&#8592; Main Menu</button>
+    </div>
+  </section>
+
   <!-- ============ BRIEFING SCREEN ============ -->
-  <section id="screen-briefing" class="screen active">
+  <section id="screen-briefing" class="screen">
     <div class="briefing-header">
       <h1>Tactical Command</h1>
       <p>Six operations, two theaters. Manage supply, engage at range with infantry, machine guns, snipers, artillery and armor — then dig into trenches and hold what you take. Win an operation to open the next on the map.</p>
@@ -442,12 +510,13 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
     </div>
     <div class="briefing-footer">
       A tribute to those who served — simplified for gameplay, not a historical simulation.
-      <br><button class="reset-progress-btn" id="btn-reset-progress">Reset Campaign Progress</button>
+      <br><button class="reset-progress-btn" id="btn-to-mainmenu">&#8592; Main Menu</button>
+      <button class="reset-progress-btn" id="btn-reset-progress">Reset Campaign Progress</button>
     </div>
   </section>
 
   <button class="mute-btn" id="btn-mute" title="Toggle music">&#128266;</button>
-  <button class="skill-badge" id="skill-badge" title="Spend skill points on upgrades">&#9733; 0</button>
+  <button class="skill-badge" id="skill-badge" title="Spend skill points on upgrades" style="display:none;">&#9733; 0</button>
 
   <!-- ============ GAME SCREEN ============ -->
   <section id="screen-game" class="screen">
@@ -469,6 +538,11 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
           <div class="hp-bar-wrap"><div class="hp-bar-outer"><div class="hp-bar-inner enemy" id="bar-enemy" style="width:100%;"></div></div></div>
         </div>
         <div class="stat timer" id="timer-block" style="display:none;"><div class="num" id="stat-timer">0:00</div><div class="lbl" id="timer-label">Hold</div></div>
+        <div id="ls-hud-block" style="display:none;">
+          <div class="lbl" style="margin-bottom:3px;">Wave <span id="ls-wave-num">1</span><span id="ls-countdown-text"></span></div>
+          <div class="hp-bar-wrap"><div class="hp-bar-outer"><div class="hp-bar-inner" id="ls-xp-bar" style="width:0%; background:var(--brass);"></div></div></div>
+          <button class="ls-start-wave-btn" id="btn-ls-start-wave" style="display:none;">Start Wave &#9654;</button>
+        </div>
       </div>
       <div class="hud-right">
         <button class="icon-btn" id="btn-pause">Pause</button>
@@ -569,6 +643,34 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
   <button class="credits-skip" id="credits-skip">Skip &#9654;</button>
   <div class="credits-viewport">
     <div class="credits-content" id="credits-content"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-ls-pick">
+  <div class="overlay-card upgrades-card">
+    <h2>Wave Cleared</h2>
+    <div class="desc" id="ls-pick-level-desc">Choose one upgrade for this run.</div>
+    <div class="upgrade-grid" id="ls-pick-grid" style="margin-bottom:6px;"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-ls-end">
+  <div class="overlay-card">
+    <h2 id="ls-end-title">Overrun</h2>
+    <div class="desc" id="ls-end-desc">The line finally broke.</div>
+    <div class="overlay-stats">
+      <div class="stat"><div class="num" id="ls-end-wave">0</div><div class="lbl">Wave Reached</div></div>
+      <div class="stat"><div class="num" id="ls-end-time">0:00</div><div class="lbl">Time Survived</div></div>
+      <div class="stat"><div class="num" id="ls-end-kills">0</div><div class="lbl">Kills</div></div>
+    </div>
+    <div class="overlay-stats">
+      <div class="stat"><div class="num" id="ls-end-points">0</div><div class="lbl">Last Stand Points Earned</div></div>
+    </div>
+    <div class="overlay-actions">
+      <button class="primary" id="btn-ls-retry">Try Again</button>
+      <button id="btn-ls-to-menu">Last Stand Menu</button>
+      <button id="btn-ls-to-mainmenu">Main Menu</button>
+    </div>
   </div>
 </div>
 
@@ -1399,8 +1501,20 @@ function updateSkillBadge(){
 }
 
 function registerEnemyKill(){
-  campaignStats.kills++;
   if(G) G.missionKills = (G.missionKills||0) + 1;
+
+  if(G && G.mission.mode==='laststand'){
+    G.lsKills = (G.lsKills||0) + 1;
+    const supplyGain = LS_SUPPLY_PER_KILL * (G.runMods.supplyPerKillMult||1);
+    G.supply = Math.min(G.supplyMax, G.supply + supplyGain);
+    G.lsXP += 1 * (G.runMods.xpMult||1);
+    if(G.lsXP >= G.lsXPCap){
+      triggerLastStandLevelUp();
+    }
+    return;
+  }
+
+  campaignStats.kills++;
   let earned = 0;
   while(campaignStats.kills >= campaignStats.nextThreshold){
     campaignStats.skillPoints++;
@@ -1599,6 +1713,7 @@ function renderMissionPanel(m){
 buildWarMap();
 loadProgress();
 loadStats();
+loadLastStandStats();
 
 
 /* ===================== COMMAND BAR BUILD ===================== */
@@ -1704,8 +1819,8 @@ function makeGameState(mission){
     mission,
     laneLength,
     elapsed:0,
-    supply: mission.startSupply + upgradeValue('quartermaster'),
-    supplyMax: 220,
+    supply: mission.startSupply + (mission.mode!=='laststand' ? upgradeValue('quartermaster') : 0),
+    supplyMax: (mission.mode==='laststand' && hasLsPerm('deepReserves')) ? 99999 : 220,
     enemySupply: mission.startSupply,
     aiTimer: 1.2,
     playerBase:{ hp:mission.playerBaseHp, maxHp:mission.playerBaseHp },
@@ -1898,6 +2013,8 @@ function seedCinematicAmbient(mission, ambient){
 }
 
 function startCinematic(id){
+  activeMode = 'campaign';
+  updateSkillBadgeVisibility();
   const mission = MISSIONS.find(m=>m.id===id);
   G = makeGameState(mission);
   seedCinematicAmbient(mission, G.ambient);
@@ -1939,7 +2056,7 @@ function updateCinematicCaptions(elapsed){
 
 function cinematicLoopFn(ts){
   cinematicRaf = requestAnimationFrame(cinematicLoopFn);
-  const dt = Math.min(0.05, (ts-cinematicLastTs)/1000);
+  const dt = Math.max(0, Math.min(0.05, (ts-cinematicLastTs)/1000));
   cinematicLastTs = ts;
   cinematicElapsed += dt;
   G.elapsed += dt;
@@ -1966,6 +2083,8 @@ function endCinematic(){
 /* ===================== MISSION LIFECYCLE ===================== */
 
 function startMission(id){
+  activeMode = 'campaign';
+  updateSkillBadgeVisibility();
   const mission = MISSIONS.find(m=>m.id===id);
   if(!mission) return;
   screenBriefing.classList.remove('active');
@@ -1974,10 +2093,13 @@ function startMission(id){
 }
 
 function updatePhaseUI(){
+  const isLastStand = G.mission.mode==='laststand';
   const phase = currentPhaseType();
-  const showTimer = phase==='defense';
+  const showTimer = phase==='defense' && !isLastStand;
   el('timer-block').style.display = showTimer ? 'flex' : 'none';
-  el('enemy-hp-block').style.display = showTimer ? 'none' : 'block';
+  el('enemy-hp-block').style.display = (showTimer || isLastStand) ? 'none' : 'block';
+  el('ls-hud-block').style.display = isLastStand ? 'block' : 'none';
+  el('support-bar').style.display = isLastStand ? 'none' : 'flex';
   let label = 'Enemy HQ';
   if(G.mission.mode==='escort') label = 'Convoy';
   else if(phase==='demolition') label = 'Target';
@@ -2064,8 +2186,11 @@ function deployPlayerUnit(key){
   if(u.uniqueLimit && G.units.some(uu=>uu.type===key && uu.side==='player' && uu.hp>0)) return;
   G.supply -= u.cost;
   G.cooldowns[key] = u.cooldown;
-  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
-  if(campaignStats.unitsDeployed[key]!==undefined){
+  const isLastStand = G.mission.mode==='laststand';
+  const hpMult = isLastStand ? (G.runMods.hpMult||1) : 1;
+  const hp = u.hp*hpMult;
+  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp, maxHp:hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
+  if(!isLastStand && campaignStats.unitsDeployed[key]!==undefined){
     campaignStats.unitsDeployed[key]++;
     saveStats();
   }
@@ -2082,21 +2207,35 @@ function weightedPick(comp){
 function aiMaybeSpawn(dt){
   const m = G.mission;
   let intensity = 1;
-  if(currentPhaseType()==='defense' && G.surviveTime>0){
+  if(m.mode==='laststand'){
+    intensity = lastStandIntensity();
+  } else if(currentPhaseType()==='defense' && G.surviveTime>0){
     const progress = Math.min(1, phaseElapsed()/G.surviveTime);
     const escalationMult = m.mode==='multistage' ? 1.2 : 2.3;
     intensity = 1 + progress*progress*escalationMult; // ramps up sharply toward the final assault
     if(progress>=0.6 && !G.warnedSurge60){ G.warnedSurge60=true; showHint('Enemy activity is picking up — reinforcements are arriving faster.'); }
     if(progress>=0.85 && !G.warnedSurge85){ G.warnedSurge85=true; showHint('Final push incoming — hold the line!'); }
   }
+  if(!isFinite(G.enemySupply)) G.enemySupply = 0;
   G.enemySupply = Math.min(G.supplyMax, G.enemySupply + m.enemySupplyRate*intensity*dt);
+
+  if(m.mode==='laststand' && G.waveCountdown>0){
+    G.waveCountdown = Math.max(0, G.waveCountdown-dt);
+    if(G.waveCountdown<=0 && !G.waveStarted){
+      G.waveStarted = true;
+      showHint('Wave ' + (G.lsLevel+1) + ' incoming!');
+    }
+    return;
+  }
   G.aiTimer -= dt;
   if(G.aiTimer > 0) return;
-  const key = weightedPick(m.enemyComposition);
+  const key = weightedPick(m.mode==='laststand' ? lastStandComposition() : m.enemyComposition);
   const u = UNIT_TYPES[key];
   if(G.enemySupply >= u.cost){
     G.enemySupply -= u.cost;
-    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
+    const hpMult = m.mode==='laststand' ? lastStandEnemyHpMult() : 1;
+    const hp = u.hp*hpMult;
+    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp, maxHp:hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
   }
   G.aiTimer = (m.enemySpawnMin + Math.random()*(m.enemySpawnMax-m.enemySpawnMin)) / intensity;
 }
@@ -2112,14 +2251,20 @@ const BULLET_WEAPONS = { infantry:true, mg:true, sniper:true };
 const TANK_BULLET_RESIST = 0.3;
 
 function fortifiedMult(side, base){
-  return (side==='player') ? base*(1-upgradeValue('fieldFortification')) : base;
+  if(side!=='player') return base;
+  if(G && G.mission.mode==='laststand') return base;
+  return base*(1-upgradeValue('fieldFortification'));
 }
 
 function effectiveAccuracy(u, uDef){
   let acc = uDef.accuracy;
   if(u.side==='player'){
-    acc *= (1 + upgradeValue('veteranCadre'));
-    if(u.type==='infantry') acc *= (1 + upgradeValue('marksmanshipTraining'));
+    if(G.mission.mode!=='laststand'){
+      acc *= (1 + upgradeValue('veteranCadre'));
+      if(u.type==='infantry') acc *= (1 + upgradeValue('marksmanshipTraining'));
+    } else {
+      acc *= (G.runMods.accMult||1);
+    }
   }
   return Math.min(0.97, acc);
 }
@@ -2135,7 +2280,8 @@ function nearbyFriendlyCommander(u){
 
 function effectiveAtkInterval(u, uDef){
   let mult = 1;
-  if(u.side==='player' && u.type==='mg') mult *= (1 - upgradeValue('extendedBelts'));
+  if(u.side==='player' && u.type==='mg' && G.mission.mode!=='laststand') mult *= (1 - upgradeValue('extendedBelts'));
+  if(u.side==='player' && G.mission.mode==='laststand') mult *= (G.runMods.atkSpeedMult||1);
   if(nearbyFriendlyCommander(u)) mult *= (1-COMMANDER_ATTACK_SPEED_BONUS);
   return uDef.atkInterval * mult;
 }
@@ -2158,7 +2304,8 @@ function fireWeapon(u, target, uDef){
     target.suppressTimer = SUPPRESS_DURATION;
   }
 
-  const isGrenadeHit = uDef.key==='infantry' && Math.abs(u.x-target.x) < 40 && Math.random() < 0.12;
+  const grenadeChance = 0.12 + (u.side==='player' && G.mission.mode==='laststand' ? (G.runMods.grenadeChanceBonus||0) : 0);
+  const isGrenadeHit = uDef.key==='infantry' && Math.abs(u.x-target.x) < 40 && Math.random() < grenadeChance;
 
   if(uDef.key==='artillery'){
     Music.playArtillery(u.x, target.x, effDur);
@@ -2174,6 +2321,12 @@ function fireWeapon(u, target, uDef){
     if(target.type==='tank' && BULLET_WEAPONS[uDef.key] && !isGrenadeHit){
       dmgMult *= TANK_BULLET_RESIST;
     }
+    if(u.side==='player' && G.mission.mode==='laststand'){
+      dmgMult *= (G.runMods.dmgMult||1);
+    }
+    if(u.side==='enemy' && G.mission.mode==='laststand'){
+      dmgMult *= lastStandEnemyDamageMult();
+    }
     const dealt = Math.max(1, Math.round(uDef.dmg*dmgMult));
     target.hp -= dealt;
     spawnFloatText(target.x, '-'+dealt, '#ffb37a');
@@ -2181,7 +2334,9 @@ function fireWeapon(u, target, uDef){
       for(const o of G.units){
         if(o===target || o.side===u.side || o.hp<=0) continue;
         if(Math.abs(o.x-target.x) <= uDef.splash){
-          const oMult = (o.inTrench || o.sheltering) ? (o.coverDmgMult || 0.8) : 1;
+          let oMult = (o.inTrench || o.sheltering) ? (o.coverDmgMult || 0.8) : 1;
+          if(u.side==='player' && G.mission.mode==='laststand') oMult *= (G.runMods.dmgMult||1);
+          if(u.side==='enemy' && G.mission.mode==='laststand') oMult *= lastStandEnemyDamageMult();
           const sd = Math.max(1, Math.round(uDef.dmg*uDef.splashRatio*oMult));
           o.hp -= sd;
           spawnFloatText(o.x, '-'+sd, '#ffb37a');
@@ -2207,6 +2362,7 @@ function updateTankMoveSound(u, dt){
 /* ===================== SUPPORT ABILITIES: MORTAR STRIKE / SMOKE SCREEN ===================== */
 
 function abilityUnlocked(id){
+  if(G && G.mission.mode==='laststand') return false;
   return upgradeLevel(id==='mortar' ? 'mortarUnlock' : 'smokeUnlock') >= 1;
 }
 
@@ -2293,6 +2449,7 @@ function updateAbilities(dt){
 
 function triggerShake(mag, dur){
   if(!G) return;
+  if(G.mission.mode==='laststand' && hasLsPerm('steadyCommand')) return;
   G.shakeMag = mag;
   G.shakeDur = dur;
   G.shakeTime = dur;
@@ -2300,8 +2457,9 @@ function triggerShake(mag, dur){
 
 function step(dt){
   if(G.over) return;
-  G.elapsed += dt;
-  G.supply = Math.min(G.supplyMax, G.supply + G.mission.supplyRate*(1+upgradeValue('logisticsCorps'))*dt);
+  G.elapsed = Math.max(0, G.elapsed + dt);
+  const logisticsMult = G.mission.mode!=='laststand' ? (1+upgradeValue('logisticsCorps')) : 1;
+  G.supply = Math.min(G.supplyMax, G.supply + G.mission.supplyRate*logisticsMult*dt);
   for(const k of UNIT_ORDER) if(G.cooldowns[k]>0) G.cooldowns[k] = Math.max(0, G.cooldowns[k]-dt);
   if(G.shakeTime>0) G.shakeTime = Math.max(0, G.shakeTime-dt);
 
@@ -2354,7 +2512,7 @@ function step(dt){
       continue;
     }
 
-    const medicsRate = u.side==='player' ? upgradeValue('combatMedics') : 0;
+    const medicsRate = (u.side==='player' && G.mission.mode!=='laststand') ? upgradeValue('combatMedics') : 0;
     if(medicsRate>0 && u.hp < u.maxHp){
       u.hp = Math.min(u.maxHp, u.hp + u.maxHp*medicsRate*dt);
     }
@@ -2447,7 +2605,7 @@ function step(dt){
       if(u.side==='player') G.unitsLost++;
       else{
         registerEnemyKill();
-        if(campaignStats.enemyEliminated[u.type]!==undefined) campaignStats.enemyEliminated[u.type]++;
+        if(G.mission.mode!=='laststand' && campaignStats.enemyEliminated[u.type]!==undefined) campaignStats.enemyEliminated[u.type]++;
       }
       const corpse = { x:u.x, side:u.side, type:u.type, row:u.row, timer:CORPSE_LIFETIME };
       if(u.inTrench){
@@ -2506,11 +2664,14 @@ function step(dt){
 
   if(G.playerBase.hp <= 0){
     G.playerBase.hp = 0;
+    if(G.mission.mode==='laststand'){ endLastStandRun(); return; }
     endMission('lose', currentPhaseType()==='defense' ? 'The line collapsed before reinforcements arrived.' : 'Allied HQ was overrun.');
     return;
   }
 
-  if(G.mission.mode==='escort'){
+  if(G.mission.mode==='laststand'){
+    // Endless — no win condition, just survive as long as possible.
+  } else if(G.mission.mode==='escort'){
     if(G.convoy.hp <= 0){
       G.convoy.hp = 0;
       endMission('lose', 'The convoy was destroyed before it could get through.');
@@ -2553,7 +2714,7 @@ function step(dt){
       endMission('win', 'Enemy headquarters destroyed. The objective is secured.');
       return;
     }
-  } else {
+  } else if(G.mission.mode==='defense'){
     if(G.elapsed >= G.surviveTime){
       endMission('win', 'The line held. Reinforcements have arrived.');
       return;
@@ -2882,7 +3043,9 @@ function updateAmbient(dt){
   const m = G.mission;
 
   let intensity = 1;
-  if(currentPhaseType()==='defense' && G.surviveTime>0){
+  if(m.mode==='laststand'){
+    intensity = lastStandIntensity();
+  } else if(currentPhaseType()==='defense' && G.surviveTime>0){
     const progress = Math.min(1, phaseElapsed()/G.surviveTime);
     const escalationMult = m.mode==='multistage' ? 1.8 : 3.6;
     intensity = 1 + progress*progress*escalationMult;
@@ -2914,19 +3077,22 @@ function updateAmbient(dt){
   a.planes.forEach(p=> p.x += p.dir*p.speed*dt);
   a.planes = a.planes.filter(p=> p.x > -0.15 && p.x < 1.15);
 
+  const suppressBombing = m.mode==='laststand' && hasLsPerm('steadyCommand');
   a.flashTimer -= dt*intensity;
   if(a.flashTimer<=0){
-    const bigChance = Math.min(0.85, Math.max(0, (intensity-1.25)/1.6));
-    const big = Math.random() < bigChance;
-    const f = { x: Math.random(), age:0, life: big ? 4.4 : (3+Math.random()*2), big };
-    a.flashes.push(f);
-    if(big){
-      Music.playExplosion(G.camera.x, 'large');
-      const shakeMag = 0.9 + Math.min(1.6, (intensity-1)*0.7);
-      const shakeDur = 0.3 + Math.min(0.3, (intensity-1)*0.12);
-      triggerShake(shakeMag, shakeDur);
-    } else {
-      Music.playDistantRumble(f.x);
+    if(!suppressBombing){
+      const bigChance = Math.min(0.85, Math.max(0, (intensity-1.25)/1.6));
+      const big = Math.random() < bigChance;
+      const f = { x: Math.random(), age:0, life: big ? 4.4 : (3+Math.random()*2), big };
+      a.flashes.push(f);
+      if(big){
+        Music.playExplosion(G.camera.x, 'large');
+        const shakeMag = 0.9 + Math.min(1.6, (intensity-1)*0.7);
+        const shakeDur = 0.3 + Math.min(0.3, (intensity-1)*0.12);
+        triggerShake(shakeMag, shakeDur);
+      } else {
+        Music.playDistantRumble(f.x);
+      }
     }
     a.flashTimer = Math.max(1.8, (9+Math.random()*14) / intensity);
   }
@@ -3103,6 +3269,18 @@ function drawEnvironment(w, h, groundY){
 
   drawGroundPerspective(w, h, groundY);
   drawProps(w, groundY, env.props);
+  drawDynamicTrenches(w, groundY);
+}
+
+function drawDynamicTrenches(w, groundY){
+  if(!G.trenches) return;
+  for(const tr of G.trenches){
+    if(!tr.dynamic) continue;
+    const x = laneToPx(tr.x, w);
+    if(tr.type==='bunker') drawBunker(x, groundY);
+    else if(tr.type==='wall') drawStoneWall(x, groundY, tr.w);
+    else drawTrench(x, groundY, tr.w);
+  }
 }
 
 function drawProps(w, groundY, props){
@@ -3872,7 +4050,18 @@ function drawMinimap(){
 function updateHud(){
   el('stat-supply').textContent = Math.floor(G.supply);
   el('bar-player').style.width = Math.max(0,(G.playerBase.hp/G.playerBase.maxHp*100))+'%';
-  if(currentPhaseType()==='defense'){
+  if(G.mission.mode==='laststand'){
+    el('ls-wave-num').textContent = G.lsLevel+1;
+    if(G.waveCountdown>0){
+      el('ls-countdown-text').textContent = ' — next wave in ' + Math.ceil(G.waveCountdown) + 's';
+      el('ls-xp-bar').style.width = '0%';
+      el('btn-ls-start-wave').style.display = 'block';
+    } else {
+      el('ls-countdown-text').textContent = '';
+      el('ls-xp-bar').style.width = Math.min(100, (G.lsXP/G.lsXPCap)*100)+'%';
+      el('btn-ls-start-wave').style.display = 'none';
+    }
+  } else if(currentPhaseType()==='defense'){
     el('stat-timer').textContent = formatTime(Math.max(0, G.surviveTime - phaseElapsed()));
   } else {
     let pct = 0;
@@ -3912,7 +4101,7 @@ function updateSupportBar(){
 
 function loop(ts){
   rafId = requestAnimationFrame(loop);
-  const dt = Math.min(0.05, (ts-lastTs)/1000);
+  const dt = Math.max(0, Math.min(0.05, (ts-lastTs)/1000));
   lastTs = ts;
   if(paused || !G || G.over) { render(); return; }
   step(dt);
@@ -3923,7 +4112,7 @@ function loop(ts){
 function celebrationLoop(ts){
   if(!G || !G.celebrating){ celebrationRafId = null; return; }
   celebrationRafId = requestAnimationFrame(celebrationLoop);
-  const dt = Math.min(0.05, (ts-celebrationLastTs)/1000);
+  const dt = Math.max(0, Math.min(0.05, (ts-celebrationLastTs)/1000));
   celebrationLastTs = ts;
   G.celebrateTime = (G.celebrateTime||0) + dt;
   spawnConfettiMaybe(dt);
@@ -3997,6 +4186,380 @@ function finishCampaignEnding(){
   backToBriefing();
 }
 
+/* ===================== LAST STAND MODE ===================== */
+
+let activeMode = 'campaign';
+
+const LS_STATS_KEY = 'laststand-stats';
+const LS_XP_BASE_CAP = 5;
+const LS_XP_GROWTH = 1.35;
+const LS_SUPPLY_PER_KILL = 6;
+const LS_WAVE_PREP_TIME = 10;
+
+const lastStandStats = { points:0, bestWave:0, bestTime:0, permUpgrades:{} };
+
+// Finite, tiered upgrades — each tier is a one-time purchase with its own cost/effect.
+const LS_PERM_UPGRADES = [
+  { id:'extraSquad', name:'Reinforcements', icon:'chevron', tiers:[
+    { cost:15, desc:'+1 Rifle Squad at the start of every run.' },
+    { cost:25, desc:'+1 Machine Gun Team at the start of every run.' },
+    { cost:40, desc:'+1 Sniper at the start of every run.' },
+  ]},
+  { id:'headStart', name:'Head Start', icon:'crate', tiers:[
+    { cost:15, desc:'Start every run with 20 supply banked.' },
+    { cost:25, desc:'Start every run with 30 supply banked.' },
+    { cost:40, desc:'Start every run with 50 supply banked.' },
+  ]},
+  { id:'hardenedCP', name:'Hardened Command Post', icon:'shield', tiers:[
+    { cost:18, desc:'+20% starting HQ health for every run.' },
+    { cost:27, desc:'+30% starting HQ health for every run.' },
+    { cost:40, desc:'+50% starting HQ health for every run.' },
+  ]},
+  { id:'fasterLearner', name:'Faster Learner', icon:'clock', tiers:[
+    { cost:15, desc:'Each level costs 10% less experience than the last.' },
+  ]},
+  { id:'steadyCommand', name:'Steady Command', icon:'medic', tiers:[
+    { cost:15, desc:'Removes screen shake and background bombing effects during Last Stand runs.' },
+  ]},
+  { id:'deepReserves', name:'Deep Reserves', icon:'crate', tiers:[
+    { cost:20, desc:'Removes the 220 supply cap during Last Stand runs.' },
+  ]},
+];
+
+// Infinite upgrades — no tier cap. Each purchase adds +1% and the next purchase costs more.
+const LS_INFINITE_UPGRADES = [
+  { id:'damageTraining', name:'Damage Training', icon:'mortar', baseCost:2, costStep:2,
+    desc:'+1% damage for all your units per level. No upper limit — cost rises with each purchase.' },
+  { id:'hpTraining', name:'Endurance Training', icon:'shield', baseCost:2, costStep:2,
+    desc:'+1% max HP for all your units per level. No upper limit — cost rises with each purchase.' },
+  { id:'fireRateTraining', name:'Rate of Fire Training', icon:'belt', baseCost:3, costStep:2,
+    desc:'+1% attack speed for all your units per level. No upper limit — cost rises with each purchase.' },
+  { id:'veteran', name:'Veteran', icon:'chevron', baseCost:2, costStep:1,
+    desc:'+1% enemy damage, speed, and HP per level — raises overall difficulty. No upper limit.' },
+];
+
+function lsUpgradeLevel(id){ return (lastStandStats.permUpgrades && lastStandStats.permUpgrades[id]) || 0; }
+function hasLsPerm(id){ return lsUpgradeLevel(id) >= 1; }
+
+function lsHeadStartSupply(){
+  const lvl = lsUpgradeLevel('headStart');
+  return [0,20,30,50][Math.min(lvl,3)] || 0;
+}
+function lsHardenedCPMult(){
+  const lvl = lsUpgradeLevel('hardenedCP');
+  return [1,1.2,1.3,1.5][Math.min(lvl,3)] || 1;
+}
+function lsDamageTrainingMult(){ return 1 + lsUpgradeLevel('damageTraining')*0.01; }
+function lsHpTrainingMult(){ return 1 + lsUpgradeLevel('hpTraining')*0.01; }
+function lsFireRateTrainingMult(){ return 1 - lsUpgradeLevel('fireRateTraining')*0.01; }
+function lsVeteranMult(){ return 1 + lsUpgradeLevel('veteran')*0.01; }
+
+async function loadLastStandStats(){
+  try{
+    const result = await window.storage.get(LS_STATS_KEY, false);
+    if(result && result.value){
+      const data = JSON.parse(result.value);
+      if(typeof data.points==='number') lastStandStats.points = data.points;
+      if(typeof data.bestWave==='number') lastStandStats.bestWave = data.bestWave;
+      if(typeof data.bestTime==='number') lastStandStats.bestTime = data.bestTime;
+      if(data.permUpgrades && typeof data.permUpgrades==='object') lastStandStats.permUpgrades = data.permUpgrades;
+    }
+  } catch(err){ /* start fresh */ }
+}
+
+async function saveLastStandStats(){
+  try{ await window.storage.set(LS_STATS_KEY, JSON.stringify(lastStandStats), false); } catch(err){}
+}
+
+function purchaseLsPerm(id){
+  const def = LS_PERM_UPGRADES.find(u=>u.id===id);
+  if(def){
+    const level = lsUpgradeLevel(id);
+    if(level >= def.tiers.length) return;
+    const cost = def.tiers[level].cost;
+    if(lastStandStats.points < cost) return;
+    lastStandStats.points -= cost;
+    lastStandStats.permUpgrades[id] = level+1;
+    saveLastStandStats();
+    buildLastStandShop();
+    return;
+  }
+  const infDef = LS_INFINITE_UPGRADES.find(u=>u.id===id);
+  if(infDef){
+    const level = lsUpgradeLevel(id);
+    const cost = infDef.baseCost + level*infDef.costStep;
+    if(lastStandStats.points < cost) return;
+    lastStandStats.points -= cost;
+    lastStandStats.permUpgrades[id] = level+1;
+    saveLastStandStats();
+    buildLastStandShop();
+  }
+}
+
+function buildLastStandShop(){
+  el('ls-points-display').textContent = lastStandStats.points;
+  el('ls-best-wave').textContent = lastStandStats.bestWave;
+  el('ls-best-time').textContent = formatTime(lastStandStats.bestTime);
+  const list = el('ls-shop-list');
+  list.innerHTML = '';
+
+  const grid = document.createElement('div');
+  grid.className = 'upgrade-grid';
+  LS_PERM_UPGRADES.forEach(def=>{
+    const level = lsUpgradeLevel(def.id);
+    const maxed = level >= def.tiers.length;
+    const nextTier = !maxed ? def.tiers[level] : null;
+    const affordable = nextTier && lastStandStats.points >= nextTier.cost;
+    const pips = def.tiers.map((t,i)=> `<span class="tier-pip ${i<level?'filled':''}"></span>`).join('');
+    const currentDesc = level>0 ? def.tiers[level-1].desc : 'Not yet trained.';
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' + (maxed ? ' owned' : '');
+    card.innerHTML = `
+      <div class="upgrade-card-top">
+        <div class="upgrade-icon">${upgradeIconSvg(def.icon)}</div>
+        <div class="upgrade-name">${def.name}</div>
+      </div>
+      <div class="tier-pips">${pips}</div>
+      <div class="upgrade-desc">${currentDesc}</div>
+      ${!maxed ? `<div class="upgrade-next">Next: ${nextTier.desc}</div>` : ''}
+      <button class="upgrade-buy-btn" ${maxed || !affordable ? 'disabled' : ''}>
+        ${maxed ? 'Maxed' : ('Tier ' + (level+1) + ' · ' + nextTier.cost + ' LSP')}
+      </button>
+    `;
+    if(!maxed) card.querySelector('.upgrade-buy-btn').addEventListener('click', ()=> purchaseLsPerm(def.id));
+    grid.appendChild(card);
+  });
+  list.appendChild(grid);
+
+  const infHeading = document.createElement('div');
+  infHeading.className = 'upgrade-section-title';
+  infHeading.textContent = 'Training (no limit)';
+  infHeading.style.marginTop = '18px';
+  list.appendChild(infHeading);
+
+  const infGrid = document.createElement('div');
+  infGrid.className = 'upgrade-grid';
+  LS_INFINITE_UPGRADES.forEach(def=>{
+    const level = lsUpgradeLevel(def.id);
+    const cost = def.baseCost + level*def.costStep;
+    const affordable = lastStandStats.points >= cost;
+    const card = document.createElement('div');
+    card.className = 'upgrade-card';
+    card.innerHTML = `
+      <div class="upgrade-card-top">
+        <div class="upgrade-icon">${upgradeIconSvg(def.icon)}</div>
+        <div class="upgrade-name">${def.name}</div>
+      </div>
+      <div class="upgrade-desc">Level ${level} — ${def.desc}</div>
+      <button class="upgrade-buy-btn" ${!affordable ? 'disabled' : ''}>
+        Level ${level+1} · ${cost} LSP
+      </button>
+    `;
+    card.querySelector('.upgrade-buy-btn').addEventListener('click', ()=> purchaseLsPerm(def.id));
+    infGrid.appendChild(card);
+  });
+  list.appendChild(infGrid);
+}
+
+function addLastStandTrench(type){
+  const dynamicCount = G.trenches.filter(t=>t.dynamic).length; // includes the starting trench
+  const x = Math.min(G.laneLength-50, 60 + dynamicCount*50);
+  G.trenches.push({
+    x, type, w: type==='bunker' ? 32 : 70,
+    capacity: COVER_CAPACITY[type], occupants: [], playerLocked:false, dynamic:true
+  });
+  showHint((type==='bunker' ? 'A bunker' : 'A trench') + ' has been dug in just ahead of your line.');
+}
+
+function spawnFreeLastStandSquad(){
+  const u = UNIT_TYPES.infantry;
+  const hpMult = (G.runMods.hpMult||1);
+  G.units.push({
+    id:G.nextUnitId++, side:'player', type:'infantry', x:30+Math.random()*20,
+    hp:u.hp*hpMult, maxHp:u.hp*hpMult, atkTimer:0, row:(G.nextUnitId%3),
+    inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0,
+    shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[]
+  });
+}
+
+const LS_RUN_UPGRADES = [
+  { id:'marksman', name:"Marksman's Eye", icon:'crosshair', desc:'+10% accuracy for all your units this run.',
+    apply(){ G.runMods.accMult *= 1.10; } },
+  { id:'rapidfire', name:'Rapid Fire', icon:'belt', desc:'+10% attack speed for all your units this run.',
+    apply(){ G.runMods.atkSpeedMult *= 0.90; } },
+  { id:'heavyord', name:'Heavy Ordnance', icon:'mortar', desc:'+15% damage for all your units this run.',
+    apply(){ G.runMods.dmgMult *= 1.15; } },
+  { id:'reinforced', name:'Reinforced Ranks', icon:'shield', desc:'+20% max HP for units you deploy from now on.',
+    apply(){ G.runMods.hpMult *= 1.20; } },
+  { id:'cache', name:"Quartermaster's Cache", icon:'crate', desc:'+25% supply earned per kill.',
+    apply(){ G.runMods.supplyPerKillMult *= 1.25; } },
+  { id:'digin', name:'Dig In', icon:'shield', desc:'Immediately build a new trench just ahead of your line.',
+    apply(){ addLastStandTrench('trench'); } },
+  { id:'bunkercomplex', name:'Bunker Complex', icon:'shield', desc:'Immediately build a new bunker just ahead of your line.',
+    apply(){ addLastStandTrench('bunker'); } },
+  { id:'grenadiers', name:'Grenadiers', icon:'mortar', desc:'+15% chance for Rifle Squads to lob a grenade in close combat.',
+    apply(){ G.runMods.grenadeChanceBonus += 0.15; } },
+  { id:'irondiscipline', name:'Iron Discipline', icon:'chevron', desc:'+25% damage, but -15% max HP for units you deploy from now on.',
+    apply(){ G.runMods.dmgMult *= 1.25; G.runMods.hpMult *= 0.85; } },
+  { id:'fieldpromotion', name:'Field Promotion', icon:'medic', desc:'Immediately deploy one free Rifle Squad.',
+    apply(){ spawnFreeLastStandSquad(); } },
+  { id:'scorched', name:'Scorched Earth', icon:'smoke', desc:'Double XP from kills, but enemies spawn 10% faster.',
+    apply(){ G.runMods.xpMult *= 2; G.runMods.enemySpeedMult *= 1.1; } },
+];
+
+function triggerLastStandLevelUp(){
+  paused = true;
+  const picks = LS_RUN_UPGRADES.slice().sort(()=>Math.random()-0.5).slice(0,3);
+  el('ls-pick-level-desc').textContent = 'Wave ' + (G.lsLevel+1) + ' cleared — choose one upgrade for this run.';
+  const grid = el('ls-pick-grid');
+  grid.innerHTML = '';
+  picks.forEach(def=>{
+    const card = document.createElement('div');
+    card.className = 'upgrade-card';
+    card.style.cursor = 'pointer';
+    card.innerHTML = `
+      <div class="upgrade-card-top">
+        <div class="upgrade-icon">${upgradeIconSvg(def.icon)}</div>
+        <div class="upgrade-name">${def.name}</div>
+      </div>
+      <div class="upgrade-desc">${def.desc}</div>
+      <button class="upgrade-buy-btn">Choose</button>
+    `;
+    const choose = ()=>{
+      def.apply();
+      el('overlay-ls-pick').classList.remove('active');
+      paused = false;
+      lastTs = performance.now();
+      G.waveCountdown = LS_WAVE_PREP_TIME;
+      G.waveStarted = false;
+      showHint(def.name + ' acquired. Next wave in ' + LS_WAVE_PREP_TIME + ' seconds.');
+    };
+    card.querySelector('.upgrade-buy-btn').addEventListener('click', choose);
+    grid.appendChild(card);
+  });
+  el('overlay-ls-pick').classList.add('active');
+  G.lsLevel++;
+  G.lsXP = 0;
+  const growth = LS_XP_GROWTH * (hasLsPerm('fasterLearner') ? 0.9 : 1);
+  G.lsXPCap = Math.round(G.lsXPCap * growth);
+}
+
+function lastStandIntensity(){
+  const mult = (G.runMods && G.runMods.enemySpeedMult) || 1;
+  const level = G.lsLevel || 0;
+  const t = Math.max(0, G.elapsed)/60;
+  const base = 0.5 + level*0.4; // each wave cleared ramps the next wave up noticeably
+  const drift = Math.min(0.4, t*0.04); // gentle continuous creep within a wave, kept small
+  return Math.min(9, (base + drift) * mult * lsVeteranMult());
+}
+
+function lastStandComposition(){
+  const level = G.lsLevel || 0; // level 0 = wave 1
+  if(level < 5) return { infantry:1 };                                  // waves 1-5: riflemen only
+  if(level < 15) return { infantry:.5, mg:.3, sniper:.2 };               // waves 6-15: light infantry variety
+  return { infantry:.25, mg:.2, sniper:.15, artillery:.2, tank:.2 };     // wave 16+: full arsenal
+}
+
+function lastStandEnemyHpMult(){
+  return (1 + (G.lsLevel||0)*0.1) * lsVeteranMult(); // +10% enemy HP per wave cleared, plus Veteran
+}
+
+function lastStandEnemyDamageMult(){
+  return (1 + (G.lsLevel||0)*0.07) * lsVeteranMult(); // +7% enemy damage per wave cleared, plus Veteran
+}
+
+function makeLastStandMission(){
+  const envKeys = Object.keys(ENV);
+  const envKey = envKeys[Math.floor(Math.random()*envKeys.length)];
+  const envWeather = { 'stalingrad':'ash', 'north-africa':'dust', 'kursk':'dust', 'iwo-jima':'ash', 'guadalcanal':'leaves', 'market-garden':'leaves', 'normandy':'rain', 'bulge':'snow' };
+  const baseEnv = ENV[envKey];
+  const noCoverEnv = Object.assign({}, baseEnv, {
+    props: (baseEnv.props||[]).filter(p => p.t!=='trench' && p.t!=='bunker' && p.t!=='wall')
+  });
+  return {
+    id:'laststand', theater:'laststand', code:'Last Stand', date:'', place:'Unknown Front',
+    mode:'laststand', laneLength:1000,
+    playerBaseHp: 220 * lsHardenedCPMult(),
+    startSupply: lsHeadStartSupply(),
+    supplyRate:0, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
+    enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.15, tank:.15},
+    difficulty:5, env: noCoverEnv, weather: envWeather[envKey] || null,
+  };
+}
+
+function beginLastStandRun(){
+  activeMode = 'laststand';
+  updateSkillBadgeVisibility();
+  const mission = makeLastStandMission();
+  el('screen-laststand-menu').classList.remove('active');
+  screenGame.classList.add('active');
+  G = makeGameState(mission);
+  G.lsXP = 0;
+  G.lsLevel = 0;
+  G.lsXPCap = LS_XP_BASE_CAP;
+  G.lsKills = 0;
+  G.waveCountdown = LS_WAVE_PREP_TIME;
+  G.waveStarted = false;
+  G.runMods = {
+    dmgMult: lsDamageTrainingMult(), atkSpeedMult: lsFireRateTrainingMult(), accMult:1,
+    hpMult: lsHpTrainingMult(), supplyPerKillMult:1, grenadeChanceBonus:0, xpMult:1, enemySpeedMult:1
+  };
+
+  function deployLsStartUnit(type, x){
+    const u = UNIT_TYPES[type];
+    const hp = u.hp*(G.runMods.hpMult||1);
+    G.units.push({
+      id:G.nextUnitId++, side:'player', type, x, hp, maxHp:hp, atkTimer:0,
+      row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0,
+      shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[]
+    });
+  }
+
+  let nextX = 26;
+  for(let i=0;i<3;i++){ deployLsStartUnit('infantry', nextX); nextX += 18; }
+  const extraLvl = lsUpgradeLevel('extraSquad');
+  ['infantry','mg','sniper'].slice(0, extraLvl).forEach(type=>{ deployLsStartUnit(type, nextX); nextX += 18; });
+
+  G.trenches.push({ x:60, type:'trench', w:70, capacity:COVER_CAPACITY.trench, occupants:[], playerLocked:false, dynamic:true });
+
+  updatePhaseUI();
+  buildObjectivePips();
+  el('trench-controls').innerHTML='';
+  el('tank-shelter-controls').innerHTML='';
+  buildCoverLockButtons();
+  resizeCanvas();
+  showHint('You have ' + LS_WAVE_PREP_TIME + ' seconds to get ready — the first wave is inbound. Every kill earns supply and experience.');
+
+  paused = false;
+  el('overlay-pause').classList.remove('active');
+  el('overlay-result').classList.remove('active');
+  el('overlay-ls-end').classList.remove('active');
+  lastTs = performance.now();
+  if(rafId) cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(loop);
+  Music.stop();
+}
+
+function endLastStandRun(){
+  G.over = true;
+  cancelAnimationFrame(rafId);
+  const wave = G.lsLevel;
+  const timeSurvived = G.elapsed;
+  const kills = G.lsKills||0;
+  const pointsEarned = Math.max(1, Math.round(wave*3 + Math.floor(timeSurvived/60)*2 + kills*0.2));
+
+  if(wave > lastStandStats.bestWave) lastStandStats.bestWave = wave;
+  if(timeSurvived > lastStandStats.bestTime) lastStandStats.bestTime = timeSurvived;
+  lastStandStats.points += pointsEarned;
+  saveLastStandStats();
+
+  el('ls-end-wave').textContent = wave;
+  el('ls-end-time').textContent = formatTime(timeSurvived);
+  el('ls-end-kills').textContent = kills;
+  el('ls-end-points').textContent = pointsEarned;
+  el('overlay-ls-end').classList.add('active');
+}
+
 /* ===================== CONTROLS ===================== */
 
 el('btn-pause').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
@@ -4019,14 +4582,22 @@ function backToBriefing(){
   if(rafId) cancelAnimationFrame(rafId);
   el('overlay-pause').classList.remove('active');
   el('overlay-result').classList.remove('active');
+  el('overlay-ls-end').classList.remove('active');
+  el('overlay-ls-pick').classList.remove('active');
   screenGame.classList.remove('active');
-  screenBriefing.classList.add('active');
   G = null;
-  refreshPinStates();
-  if(selectedMissionId){
-    const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
-    if(m) renderMissionPanel(m);
+  if(activeMode==='laststand'){
+    el('screen-laststand-menu').classList.add('active');
+    buildLastStandShop();
+  } else {
+    screenBriefing.classList.add('active');
+    refreshPinStates();
+    if(selectedMissionId){
+      const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
+      if(m) renderMissionPanel(m);
+    }
   }
+  updateSkillBadgeVisibility();
   Music.start('menu');
 }
 
@@ -4140,6 +4711,65 @@ el('btn-reset-progress').addEventListener('click', async ()=>{
     const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
     if(m) renderMissionPanel(m);
   }
+});
+
+/* ---- main menu / last stand navigation ---- */
+function updateSkillBadgeVisibility(){
+  const badge = el('skill-badge');
+  const onCampaign = screenBriefing.classList.contains('active') ||
+    (screenGame.classList.contains('active') && activeMode==='campaign');
+  badge.style.display = onCampaign ? 'flex' : 'none';
+}
+
+function showMainMenu(){
+  el('screen-mainmenu').classList.add('active');
+  el('screen-briefing').classList.remove('active');
+  el('screen-laststand-menu').classList.remove('active');
+  Music.start('menu');
+  updateSkillBadgeVisibility();
+}
+
+el('btn-mode-campaign').addEventListener('click', ()=>{
+  el('screen-mainmenu').classList.remove('active');
+  screenBriefing.classList.add('active');
+  refreshPinStates();
+  updateSkillBadgeVisibility();
+});
+
+el('btn-mode-laststand').addEventListener('click', ()=>{
+  el('screen-mainmenu').classList.remove('active');
+  el('screen-laststand-menu').classList.add('active');
+  buildLastStandShop();
+  updateSkillBadgeVisibility();
+});
+
+el('btn-to-mainmenu').addEventListener('click', showMainMenu);
+el('btn-laststand-to-mainmenu').addEventListener('click', showMainMenu);
+el('btn-ls-to-mainmenu').addEventListener('click', ()=>{
+  el('overlay-ls-end').classList.remove('active');
+  showMainMenu();
+});
+
+el('btn-start-laststand').addEventListener('click', beginLastStandRun);
+el('btn-ls-start-wave').addEventListener('click', ()=>{
+  if(G && G.mission.mode==='laststand' && G.waveCountdown>0){
+    G.waveCountdown = 0;
+    G.waveStarted = true;
+    showHint('Wave ' + (G.lsLevel+1) + ' incoming!');
+  }
+});
+el('btn-ls-retry').addEventListener('click', ()=>{
+  el('overlay-ls-end').classList.remove('active');
+  beginLastStandRun();
+});
+el('btn-ls-to-menu').addEventListener('click', ()=>{
+  el('overlay-ls-end').classList.remove('active');
+  screenGame.classList.remove('active');
+  G = null;
+  el('screen-laststand-menu').classList.add('active');
+  buildLastStandShop();
+  Music.start('menu');
+  updateSkillBadgeVisibility();
 });
 
 })();
