@@ -101,6 +101,76 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
   font-size:16px; cursor:pointer;
 }
 .mute-btn:hover{ background:rgba(73,83,31,0.65); }
+.skill-badge{
+  position:fixed; top:12px; right:58px; z-index:200;
+  height:38px; padding:0 14px; border-radius:19px;
+  background:rgba(20,19,14,0.6); border:1px solid var(--line); color:var(--brass);
+  font-size:14px; font-weight:700; display:flex; align-items:center; gap:4px;
+  font-family:'Archivo',sans-serif; cursor:pointer;
+}
+.skill-badge:hover{ background:rgba(184,147,60,0.25); border-color:var(--brass); }
+
+.upgrades-card{ max-width:840px; text-align:left; max-height:82vh; overflow-y:auto; }
+.upgrades-card h2{ text-align:center; }
+.upgrades-card .desc{ text-align:center; }
+.upgrades-list{ display:flex; flex-direction:column; gap:22px; margin-bottom:20px; }
+.upgrade-section-title{
+  font-family:'Staatliches',sans-serif; font-size:20px; letter-spacing:0.03em;
+  color:var(--brass); border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:12px;
+}
+.upgrade-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px;
+}
+.upgrade-card{
+  display:flex; flex-direction:column; gap:6px;
+  border:1px solid var(--line); padding:14px; background:var(--panel-2);
+}
+.upgrade-card.owned{ border-color:var(--olive-light); }
+.upgrade-card.locked{ opacity:0.5; }
+.upgrade-card-top{ display:flex; align-items:center; gap:10px; }
+.upgrade-icon{
+  flex-shrink:0; width:38px; height:38px; border-radius:6px;
+  background:rgba(184,147,60,0.12); border:1px solid var(--line);
+  color:var(--brass); display:flex; align-items:center; justify-content:center;
+}
+.upgrade-name{ font-size:13.5px; font-weight:700; color:var(--parchment-2); line-height:1.2; }
+.upgrade-desc{ font-size:12px; color:var(--parchment-dim); line-height:1.4; flex-grow:1; }
+.upgrade-next{ font-size:11px; color:var(--brass); opacity:0.85; font-style:italic; }
+.tier-pips{ display:flex; gap:3px; }
+.tier-pip{ width:9px; height:9px; border-radius:50%; border:1px solid var(--brass); background:transparent; display:inline-block; }
+.tier-pip.filled{ background:var(--brass); }
+.upgrade-buy-btn{
+  margin-top:2px; background:var(--olive); color:var(--parchment-2); border:1px solid rgba(0,0,0,0.3);
+  padding:9px 10px; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
+}
+.upgrade-buy-btn:hover:not(:disabled){ background:var(--olive-light); }
+.upgrade-buy-btn:disabled{ opacity:0.5; cursor:not-allowed; background:var(--panel); }
+
+.credits-overlay{
+  position:fixed; inset:0; z-index:300; background:rgba(8,7,5,0.68);
+  display:none;
+}
+.credits-overlay.active{ display:block; }
+.credits-viewport{ position:absolute; inset:0; overflow:hidden; }
+.credits-content{
+  position:absolute; left:50%; top:100%; transform:translateX(-50%);
+  width:min(620px,88%); text-align:center;
+  animation: credits-scroll 50s linear forwards;
+}
+@keyframes credits-scroll{
+  from{ top:100%; }
+  to{ top:-260%; }
+}
+.credits-content h1{ font-family:'Staatliches',sans-serif; font-size:42px; color:var(--brass); margin:0 0 16px; letter-spacing:0.02em; }
+.credits-content h2{ font-family:'Staatliches',sans-serif; font-size:22px; color:var(--parchment-2); margin:36px 0 12px; letter-spacing:0.02em; }
+.credits-content p{ font-size:13.5px; line-height:1.7; color:var(--parchment-dim); margin:0 0 12px; }
+.credits-stat-line{ font-size:14.5px; color:var(--parchment-2); margin:3px 0; }
+.credits-skip{
+  position:absolute; top:16px; right:16px; z-index:310;
+  background:rgba(20,19,14,0.6); border:1px solid var(--line); color:var(--parchment);
+  padding:8px 14px; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer;
+}
+.credits-skip:hover{ background:rgba(73,83,31,0.65); }
 
 /* ---------- GAME SCREEN ---------- */
 #screen-game{ display:none; flex-direction:column; height:100vh; }
@@ -109,7 +179,7 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 .hud{
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   background:var(--panel); border-bottom:1px solid var(--line);
-  padding:10px 18px; flex-wrap:wrap;
+  padding:10px 170px 10px 18px; flex-wrap:wrap;
 }
 .hud-left{ display:flex; align-items:center; gap:14px; }
 .hud-title{ font-size:22px; color:var(--parchment-2); }
@@ -169,6 +239,22 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 .objective-progress{ position:absolute; top:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; z-index:2; }
 .objective-pip{ width:14px; height:14px; border:1px solid var(--brass); background:transparent; }
 .objective-pip.done{ background:var(--brass); }
+
+.support-bar{
+  display:flex; gap:9px; padding:8px 14px 0; background:var(--panel);
+}
+.support-btn{
+  position:relative; flex:1; max-width:220px;
+  background:var(--panel-2); border:1px solid var(--brass); color:var(--parchment);
+  padding:8px 10px; display:flex; align-items:center; gap:8px; overflow:hidden; text-align:left;
+}
+.support-btn:disabled{ opacity:0.4; cursor:not-allowed; border-color:var(--line); }
+.support-btn.armed{ border-color:var(--rust); background:rgba(161,61,43,0.18); }
+.support-btn:not(:disabled):hover{ background:rgba(184,147,60,0.15); }
+.support-icon{ width:22px; height:22px; flex-shrink:0; color:var(--brass); }
+.support-icon svg{ width:100%; height:100%; }
+.support-label{ font-size:12.5px; font-weight:700; flex-grow:1; }
+.support-sub{ font-size:10.5px; color:var(--parchment-dim); }
 
 .command-bar{
   display:flex; gap:9px; padding:12px 14px; background:var(--panel); border-top:1px solid var(--line);
@@ -276,7 +362,7 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
 .lock-btn.locked{ background:rgba(161,61,43,0.55); border-color:var(--rust); }
 
 @media (max-width:720px){
-  .hud{ flex-direction:column; align-items:stretch; gap:8px; }
+  .hud{ flex-direction:column; align-items:stretch; gap:8px; padding:54px 12px 8px; }
   .hud-mid{ justify-content:space-between; }
   .unit-btn{ min-width:92px; padding:7px; }
   .unit-name{ font-size:11px; }
@@ -361,6 +447,7 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
   </section>
 
   <button class="mute-btn" id="btn-mute" title="Toggle music">&#128266;</button>
+  <button class="skill-badge" id="skill-badge" title="Spend skill points on upgrades">&#9733; 0</button>
 
   <!-- ============ GAME SCREEN ============ -->
   <section id="screen-game" class="screen">
@@ -402,6 +489,7 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
       <button class="cam-home" id="cam-home" title="Return to your lines">My Lines</button>
       <div class="objective-progress" id="objective-progress"></div>
       <div class="trench-controls" id="trench-controls"></div>
+      <div class="trench-controls" id="tank-shelter-controls"></div>
       <div class="cover-locks" id="cover-locks"></div>
       <div class="hint-banner" id="hint-banner" style="display:none;"></div>
 
@@ -414,6 +502,20 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
       </div>
     </div>
 
+    <div class="support-bar" id="support-bar">
+      <button class="support-btn" id="support-btn-mortar" data-ability="mortar" title="Mortar Strike">
+        <span class="support-icon" id="support-icon-mortar"></span>
+        <span class="support-label">Mortar Strike</span>
+        <span class="support-sub" id="support-sub-mortar">Locked</span>
+        <div class="cooldown-veil" id="support-veil-mortar" style="height:0%;"></div>
+      </button>
+      <button class="support-btn" id="support-btn-smoke" data-ability="smoke" title="Smoke Screen">
+        <span class="support-icon" id="support-icon-smoke"></span>
+        <span class="support-label">Smoke Screen</span>
+        <span class="support-sub" id="support-sub-smoke">Locked</span>
+        <div class="cooldown-veil" id="support-veil-smoke" style="height:0%;"></div>
+      </button>
+    </div>
     <div class="command-bar" id="command-bar"></div>
   </section>
 
@@ -440,10 +542,33 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
       <div class="stat"><div class="num" id="result-objectives">0/0</div><div class="lbl">Objectives</div></div>
       <div class="stat"><div class="num" id="result-losses">0</div><div class="lbl">Units Lost</div></div>
     </div>
+    <div class="overlay-stats" id="result-stats-row2">
+      <div class="stat"><div class="num" id="result-xp">0</div><div class="lbl">XP Gained</div></div>
+      <div class="stat"><div class="num" id="result-sp">0</div><div class="lbl">SP Gained</div></div>
+      <div class="stat"><div class="num" id="result-eliminated">0</div><div class="lbl">Eliminated</div></div>
+    </div>
     <div class="overlay-actions">
       <button class="primary" id="btn-retry">Retry Operation</button>
       <button id="btn-back-briefing">Briefing Room</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay-upgrades">
+  <div class="overlay-card upgrades-card">
+    <h2>Field Upgrades</h2>
+    <div class="desc">Spend skill points earned from enemy kills on permanent campaign upgrades. Each is a one-time purchase.</div>
+    <div class="upgrades-list" id="upgrades-list"></div>
+    <div class="overlay-actions">
+      <button class="primary" id="btn-close-upgrades">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="credits-overlay" id="overlay-campaign-end">
+  <button class="credits-skip" id="credits-skip">Skip &#9654;</button>
+  <div class="credits-viewport">
+    <div class="credits-content" id="credits-content"></div>
   </div>
 </div>
 
@@ -740,9 +865,29 @@ const Music = (function(){
     noiseHit(t, {freq:400-muffle*150, dur:0.18, vol:0.08*atten, pan, type:'lowpass'});
   }
 
+  function playSmokeDeploy(worldX){
+    const c = ensureCtx(); if(!c || muted) return;
+    const {pan, muffle} = panMuffleForWorldX(worldX);
+    const atten = 1-muffle*0.6;
+    const t = c.currentTime;
+    toneThump(t, {freq:120, dur:0.14, vol:0.2*atten, pan});
+    noiseHit(t+0.05, {freq:900-muffle*300, dur:0.9, vol:0.16*atten, pan, type:'lowpass'});
+  }
+
+  function playVictoryFanfare(){
+    const c = ensureCtx(); if(!c || muted) return;
+    const t = c.currentTime;
+    const notes = [0,0,7,12,7,12,16];
+    const dur = 0.22;
+    notes.forEach((semi,i)=>{
+      brassNote(t+i*dur, 220*Math.pow(2, semi/12), dur*1.3, 0.16);
+      if(i%2===0) kick(t+i*dur, 0.35);
+    });
+  }
+
   return {
     start, stop, ensureCtx, setMuted, isMuted, toggleMuted,
-    playShot, playGrenade, playExplosion, playArtillery, playDistantRumble, playPlaneDrone, playBoatDrone, playTankMove
+    playShot, playGrenade, playExplosion, playArtillery, playDistantRumble, playPlaneDrone, playBoatDrone, playTankMove, playSmokeDeploy, playVictoryFanfare
   };
 })();
 
@@ -753,9 +898,25 @@ const UNIT_TYPES = {
   mg:        { key:'mg',        abbr:'MG', label:'Machine Gun Team', cost:32, hp:54,  dmg:9,  range:190, atkInterval:0.42, speed:15, cooldown:3.6, accuracy:0.80, manCount:2, canGarrison:true },
   sniper:    { key:'sniper',    abbr:'SN', label:'Sniper',           cost:48, hp:20,  dmg:28, range:260, atkInterval:2.1,  speed:18, cooldown:6.2, accuracy:0.90, manCount:1, canGarrison:true },
   artillery: { key:'artillery', abbr:'AR', label:'Artillery Battery',cost:60, hp:26,  dmg:22, range:320, atkInterval:1.7,  speed:10, cooldown:6.6, accuracy:0.50, manCount:1, splash:26, splashRatio:0.5, canGarrison:false },
-  tank:      { key:'tank',      abbr:'TK', label:'Armor',            cost:120, hp:150, dmg:17, range:170, atkInterval:0.75, speed:22, cooldown:8.5, accuracy:0.75, manCount:0, canGarrison:false },
+  tank:      { key:'tank',      abbr:'TK', label:'Armor',            cost:100, hp:150, dmg:17, range:170, atkInterval:0.75, speed:22, cooldown:8.5, accuracy:0.75, manCount:0, canGarrison:false },
+  commander: { key:'commander', abbr:'CO', label:'Field Commander',  cost:50, hp:70,  dmg:6,  range:130, atkInterval:0.7,  speed:24, cooldown:5.0, accuracy:0.65, manCount:1, canGarrison:true, uniqueLimit:1 },
 };
-const UNIT_ORDER = ['infantry','mg','sniper','artillery','tank'];
+const UNIT_ORDER = ['infantry','mg','sniper','artillery','tank','commander'];
+const COMMANDER_AURA_RADIUS = 90;
+const COMMANDER_ATTACK_SPEED_BONUS = 0.05;
+
+const MORTAR_BASE_RADIUS = 80;   // scatter radius — roughly the footprint of 4 tanks
+const MORTAR_BASE_ROUNDS = 3;
+const MORTAR_ROUND_INTERVAL = 3.0;
+const MORTAR_BASE_DAMAGE = 40;
+const MORTAR_SPLASH = 45;
+const MORTAR_COOLDOWN = 30;
+const MORTAR_TRAVEL_DELAY = 0.7;
+
+const SMOKE_BASE_DURATION = 5.0;
+const SMOKE_BASE_MISS = 0.25;
+const SMOKE_BASE_RADIUS = 70;
+const SMOKE_COOLDOWN = 30;
 const VEHICLE_STALL_DURATION = 3.0;
 const SUPPRESS_DURATION = 3.5;
 const SUPPRESS_RANGE_BONUS = 55;
@@ -770,6 +931,11 @@ const COVER_RELEASE_LOCK = 2.0;
 const COVER_CAPACITY = { trench:3, bunker:2, wall:2 };
 const COVER_MULT = { trench:0.6, bunker:0.5, wall:0.7 };
 const COVER_RANGE_BONUS = { trench:25, bunker:20, wall:15 };
+
+const TANK_SHELTER_CAPACITY = 2;
+const TANK_SHELTER_RADIUS = 40;
+const TANK_SHELTER_TRAIL = 20;
+const SHELTER_RELEASE_LOCK = 2.0;
 
 /* Environment presets: sky/ground colors, horizon feature, and fixed set-dressing props
    placed at fractional lane positions (0 = Allied HQ side, 1 = Axis HQ side).
@@ -1094,6 +1260,243 @@ async function saveProgress(){
   }
 }
 
+/* ===================== CAMPAIGN STATS (kills / skill points / upgrades) ===================== */
+
+const STATS_KEY = 'campaign-stats';
+const campaignStats = {
+  kills: 0, skillPoints: 0, nextThreshold: 20, upgradeLevels: {}, totalSPEarned: 0,
+  unitsDeployed: { infantry:0, mg:0, sniper:0, artillery:0, tank:0, commander:0 },
+  enemyEliminated: { infantry:0, mg:0, sniper:0, artillery:0, tank:0 },
+};
+
+const UPGRADE_CATEGORIES = [
+  { id:'general', name:'General Training' },
+  { id:'mortar',  name:'Mortar Strike' },
+  { id:'smoke',   name:'Smoke Screen' },
+];
+
+const UPGRADES = [
+  { id:'combatMedics', name:'Combat Medics', category:'general', icon:'medic', tiers:[
+    { cost:1,  value:0.02,  desc:'Units recover 2% max HP/sec when they haven\'t been in a fight for a few seconds.' },
+    { cost:5,  value:0.035, desc:'Recovery rate improves to 3.5% max HP/sec.' },
+    { cost:10, value:0.05,  desc:'Recovery rate improves to 5% max HP/sec.' },
+  ]},
+  { id:'quartermaster', name:'Quartermaster', category:'general', icon:'crate', tiers:[
+    { cost:1,  value:15, desc:'Start every mission with +15 supply banked.' },
+    { cost:5,  value:30, desc:'Starting supply bonus improves to +30.' },
+    { cost:10, value:50, desc:'Starting supply bonus improves to +50.' },
+  ]},
+  { id:'veteranCadre', name:'Veteran Cadre', category:'general', icon:'chevron', tiers:[
+    { cost:1,  value:0.08, desc:'All your units fire with +8% accuracy.' },
+    { cost:5,  value:0.14, desc:'Accuracy bonus improves to +14%.' },
+    { cost:10, value:0.20, desc:'Accuracy bonus improves to +20%.' },
+  ]},
+  { id:'marksmanshipTraining', name:'Marksmanship Training', category:'general', icon:'crosshair', tiers:[
+    { cost:1,  value:0.05, desc:'Rifle Squads gain a further +5% accuracy, on top of Veteran Cadre.' },
+    { cost:5,  value:0.09, desc:'Rifle Squad accuracy bonus improves to +9%.' },
+    { cost:10, value:0.14, desc:'Rifle Squad accuracy bonus improves to +14%.' },
+  ]},
+  { id:'extendedBelts', name:'Extended Belts', category:'general', icon:'belt', tiers:[
+    { cost:1,  value:0.05, desc:'Machine Gun Teams fire 5% faster.' },
+    { cost:5,  value:0.09, desc:'Rate of fire bonus improves to 9%.' },
+    { cost:10, value:0.14, desc:'Rate of fire bonus improves to 14%.' },
+  ]},
+  { id:'logisticsCorps', name:'Logistics Corps', category:'general', icon:'truck', tiers:[
+    { cost:1,  value:0.05, desc:'Supply generation is 5% faster for the whole mission.' },
+    { cost:5,  value:0.09, desc:'Supply generation bonus improves to 9%.' },
+    { cost:10, value:0.14, desc:'Supply generation bonus improves to 14%.' },
+  ]},
+  { id:'fieldFortification', name:'Field Fortification', category:'general', icon:'shield', tiers:[
+    { cost:1,  value:0.10, desc:'Trenches, bunkers, walls and tank-shelter cover all reduce incoming accuracy and damage a further 10%.' },
+    { cost:5,  value:0.16, desc:'Cover bonus improves to 16%.' },
+    { cost:10, value:0.22, desc:'Cover bonus improves to 22%.' },
+  ]},
+
+  { id:'mortarUnlock', name:'Mortar Strike', category:'mortar', icon:'mortar', tiers:[
+    { cost:5, value:1, desc:'Unlocks the Mortar Strike support ability. Mark a position on the field and call in 3 rounds — they scatter a bit, so it\'s never a guaranteed pinpoint hit.' },
+  ]},
+  { id:'mortarExplosions', name:'Extra Rounds', category:'mortar', icon:'mortar', requires:'mortarUnlock', tiers:[
+    { cost:1,  value:1, desc:'+1 mortar round per strike (4 total).' },
+    { cost:5,  value:2, desc:'+2 mortar rounds per strike (5 total).' },
+    { cost:10, value:3, desc:'+3 mortar rounds per strike (6 total).' },
+  ]},
+  { id:'mortarAccuracy', name:'Mortar Accuracy', category:'mortar', icon:'crosshair', requires:'mortarUnlock', tiers:[
+    { cost:1,  value:0.05, desc:'Impact scatter tightened 5%.' },
+    { cost:5,  value:0.10, desc:'Impact scatter tightened 10%.' },
+    { cost:10, value:0.15, desc:'Impact scatter tightened 15%.' },
+  ]},
+  { id:'mortarDamage', name:'Mortar Payload', category:'mortar', icon:'mortar', requires:'mortarUnlock', tiers:[
+    { cost:1,  value:0.05, desc:'+5% mortar explosion damage.' },
+    { cost:5,  value:0.10, desc:'+10% mortar explosion damage.' },
+    { cost:10, value:0.15, desc:'+15% mortar explosion damage.' },
+  ]},
+
+  { id:'smokeUnlock', name:'Smoke Screen', category:'smoke', icon:'smoke', tiers:[
+    { cost:5, value:1, desc:'Unlocks the Smoke Screen ability. Mark a position to drop a 5-second smoke cloud — any unit inside it, friend or foe, has a much harder time hitting anything.' },
+  ]},
+  { id:'smokeMissPercent', name:'Thicker Smoke', category:'smoke', icon:'smoke', requires:'smokeUnlock', tiers:[
+    { cost:1,  value:0.05, desc:'+5% miss chance in the cloud (30% total).' },
+    { cost:5,  value:0.10, desc:'+10% miss chance in the cloud (35% total).' },
+    { cost:10, value:0.15, desc:'+15% miss chance in the cloud (40% total).' },
+  ]},
+  { id:'smokeDuration', name:'Lingering Smoke', category:'smoke', icon:'clock', requires:'smokeUnlock', tiers:[
+    { cost:1,  value:1, desc:'+1 second of duration (6s total).' },
+    { cost:5,  value:2, desc:'+2 seconds of duration (7s total).' },
+    { cost:10, value:3, desc:'+3 seconds of duration (8s total).' },
+  ]},
+  { id:'smokeArea', name:'Wider Smoke', category:'smoke', icon:'smoke', requires:'smokeUnlock', tiers:[
+    { cost:1,  value:0.05, desc:'+5% area of effect.' },
+    { cost:5,  value:0.10, desc:'+10% area of effect.' },
+    { cost:10, value:0.15, desc:'+15% area of effect.' },
+  ]},
+];
+
+function upgradeLevel(id){
+  return (campaignStats.upgradeLevels && campaignStats.upgradeLevels[id]) || 0;
+}
+
+function upgradeValue(id){
+  const level = upgradeLevel(id);
+  if(level<=0) return 0;
+  const def = UPGRADES.find(u=>u.id===id);
+  return def ? def.tiers[level-1].value : 0;
+}
+
+async function loadStats(){
+  try{
+    const result = await window.storage.get(STATS_KEY, false);
+    if(result && result.value){
+      const data = JSON.parse(result.value);
+      if(typeof data.kills==='number') campaignStats.kills = data.kills;
+      if(typeof data.skillPoints==='number') campaignStats.skillPoints = data.skillPoints;
+      if(typeof data.nextThreshold==='number') campaignStats.nextThreshold = data.nextThreshold;
+      if(typeof data.totalSPEarned==='number') campaignStats.totalSPEarned = data.totalSPEarned;
+      if(data.upgradeLevels && typeof data.upgradeLevels==='object') campaignStats.upgradeLevels = data.upgradeLevels;
+      if(data.unitsDeployed && typeof data.unitsDeployed==='object') Object.assign(campaignStats.unitsDeployed, data.unitsDeployed);
+      if(data.enemyEliminated && typeof data.enemyEliminated==='object') Object.assign(campaignStats.enemyEliminated, data.enemyEliminated);
+    }
+  } catch(err){
+    // No saved stats yet — start fresh.
+  }
+  updateSkillBadge();
+}
+
+async function saveStats(){
+  try{
+    await window.storage.set(STATS_KEY, JSON.stringify(campaignStats), false);
+  } catch(err){
+    // Stats just won't persist this session if storage isn't available.
+  }
+}
+
+function updateSkillBadge(){
+  const badge = el('skill-badge');
+  if(badge) badge.textContent = '\u2605 ' + campaignStats.skillPoints;
+}
+
+function registerEnemyKill(){
+  campaignStats.kills++;
+  if(G) G.missionKills = (G.missionKills||0) + 1;
+  let earned = 0;
+  while(campaignStats.kills >= campaignStats.nextThreshold){
+    campaignStats.skillPoints++;
+    campaignStats.totalSPEarned++;
+    campaignStats.nextThreshold += 10;
+    earned++;
+  }
+  if(earned>0){
+    if(G){
+      G.missionSPEarned = (G.missionSPEarned||0) + earned;
+      showHint(earned>1 ? `${earned} skill points earned!` : 'Skill point earned!');
+    }
+  }
+  updateSkillBadge();
+  saveStats();
+}
+
+function purchaseUpgradeTier(id){
+  const def = UPGRADES.find(u=>u.id===id);
+  if(!def) return;
+  if(def.requires && upgradeLevel(def.requires) < 1) return;
+  const level = upgradeLevel(id);
+  if(level >= def.tiers.length) return;
+  const tier = def.tiers[level];
+  if(campaignStats.skillPoints < tier.cost) return;
+  campaignStats.skillPoints -= tier.cost;
+  campaignStats.upgradeLevels[id] = level + 1;
+  updateSkillBadge();
+  saveStats();
+  buildUpgradesList();
+}
+
+const UPGRADE_ICONS = {
+  medic:     '<path d="M9 3h6v4h4v6h-4v4H9v-4H5V7h4Z"/>',
+  crate:     '<rect x="3" y="6" width="18" height="13" rx="0.5"/><path d="M3 11h18M12 6v13" stroke="var(--panel)" stroke-width="1.4" fill="none"/>',
+  chevron:   '<path d="M4 15 12 8l8 7M4 20 12 13l8 7" fill="none" stroke="currentColor" stroke-width="2.4"/>',
+  crosshair: '<circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5" stroke="currentColor" stroke-width="2"/>',
+  belt:      '<rect x="2" y="10" width="20" height="4" rx="1"/><rect x="4" y="5" width="3" height="5" rx="1"/><rect x="10.5" y="5" width="3" height="5" rx="1"/><rect x="17" y="5" width="3" height="5" rx="1"/>',
+  truck:     '<rect x="2" y="9" width="12" height="7" rx="0.5"/><path d="M14 12h5l3 3v1h-8Z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+  shield:    '<path d="M12 2 20 5v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V5Z"/>',
+  mortar:    '<path d="M12 21 6 9l6-6 6 6Z"/><rect x="4" y="20" width="16" height="2" rx="1"/>',
+  smoke:     '<path d="M4 18c1-2 0-4 2-5s3 1 4-1 3-2 5-1 3 3 5 2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M4 12c1-2 0-4 2-5s3 1 4-1 3-2 5-1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.55"/>',
+  clock:     '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+};
+
+function upgradeIconSvg(iconKey){
+  const path = UPGRADE_ICONS[iconKey] || UPGRADE_ICONS.crosshair;
+  return `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">${path}</svg>`;
+}
+
+function buildUpgradesList(){
+  const list = el('upgrades-list');
+  if(!list) return;
+  list.innerHTML = '';
+  UPGRADE_CATEGORIES.forEach(cat=>{
+    const defs = UPGRADES.filter(u=>u.category===cat.id);
+    if(!defs.length) return;
+    const section = document.createElement('div');
+    section.className = 'upgrade-section';
+    const heading = document.createElement('div');
+    heading.className = 'upgrade-section-title';
+    heading.textContent = cat.name;
+    section.appendChild(heading);
+
+    const grid = document.createElement('div');
+    grid.className = 'upgrade-grid';
+
+    defs.forEach(def=>{
+      const level = upgradeLevel(def.id);
+      const maxed = level >= def.tiers.length;
+      const nextTier = !maxed ? def.tiers[level] : null;
+      const locked = !!(def.requires && upgradeLevel(def.requires) < 1);
+      const affordable = !locked && nextTier && campaignStats.skillPoints >= nextTier.cost;
+      const pips = def.tiers.map((t,i)=> `<span class="tier-pip ${i<level?'filled':''}"></span>`).join('');
+      const currentDesc = level>0 ? def.tiers[level-1].desc : (locked ? `Requires ${UPGRADES.find(u=>u.id===def.requires).name}.` : 'Not yet trained.');
+      const card = document.createElement('div');
+      card.className = 'upgrade-card' + (maxed ? ' owned' : '') + (locked ? ' locked' : '');
+      card.innerHTML = `
+        <div class="upgrade-card-top">
+          <div class="upgrade-icon">${upgradeIconSvg(def.icon)}</div>
+          <div class="upgrade-name">${def.name}</div>
+        </div>
+        <div class="tier-pips">${pips}</div>
+        <div class="upgrade-desc">${currentDesc}</div>
+        ${!maxed && !locked ? `<div class="upgrade-next">Next: ${nextTier.desc}</div>` : ''}
+        <button class="upgrade-buy-btn" ${maxed || !affordable || locked ? 'disabled' : ''}>
+          ${maxed ? 'Maxed' : (locked ? 'Locked' : ('Tier ' + (level+1) + ' · ' + nextTier.cost + ' SP'))}
+        </button>
+      `;
+      if(!maxed && !locked){
+        card.querySelector('.upgrade-buy-btn').addEventListener('click', ()=> purchaseUpgradeTier(def.id));
+      }
+      grid.appendChild(card);
+    });
+
+    section.appendChild(grid);
+    list.appendChild(section);
+  });
+}
+
 let selectedMissionId = null;
 
 function rankMarks(n){
@@ -1191,6 +1594,7 @@ function renderMissionPanel(m){
 
 buildWarMap();
 loadProgress();
+loadStats();
 
 
 /* ===================== COMMAND BAR BUILD ===================== */
@@ -1218,6 +1622,8 @@ function buildCommandBar(){
   });
 }
 buildCommandBar();
+el('support-icon-mortar').innerHTML = upgradeIconSvg('mortar');
+el('support-icon-smoke').innerHTML = upgradeIconSvg('smoke');
 
 /* ===================== TEXTURE / PATTERN CACHE ===================== */
 
@@ -1268,6 +1674,8 @@ function ensurePatterns(){
 let G = null;
 let rafId = null;
 let lastTs = 0;
+let celebrationRafId = null;
+let celebrationLastTs = 0;
 let paused = false;
 
 function computeViewWidth(laneLength){
@@ -1292,7 +1700,7 @@ function makeGameState(mission){
     mission,
     laneLength,
     elapsed:0,
-    supply: mission.startSupply,
+    supply: mission.startSupply + upgradeValue('quartermaster'),
     supplyMax: 220,
     enemySupply: mission.startSupply,
     aiTimer: 1.2,
@@ -1305,12 +1713,17 @@ function makeGameState(mission){
     effects:[],
     floatingText:[],
     corpses:[],
+    confetti:[],
+    celebrating:false,
+    celebrateTime:0,
     ambient: makeAmbient(),
     intensity: 1,
     shakeMag: 0, shakeDur: 0.3, shakeTime: 0,
     nextUnitId:1,
-    cooldowns:{ infantry:0, mg:0, sniper:0, artillery:0, tank:0 },
+    cooldowns:{ infantry:0, mg:0, sniper:0, artillery:0, tank:0, commander:0 },
     unitsLost:0,
+    missionKills:0,
+    missionSPEarned:0,
     surviveTime: initialPhase.surviveTime||0,
     over:false,
     result:null,
@@ -1321,6 +1734,10 @@ function makeGameState(mission){
     stageStartElapsed: 0,
     convoy: mission.mode==='escort' ? { x:36, hp:mission.convoy.hp, maxHp:mission.convoy.hp, speed:mission.convoy.speed, arrived:false, goalX: laneLength*CONVOY_GOAL_FRAC } : null,
     demoTarget: mission.mode==='demolition' ? { x: mission.demoTarget.frac*laneLength, hp:mission.demoTarget.hp, maxHp:mission.demoTarget.hp, destroyed:false } : null,
+    mortarQueue: [],
+    smokeClouds: [],
+    abilityCooldowns: { mortar: MORTAR_COOLDOWN, smoke: SMOKE_COOLDOWN },
+    pendingAbility: null,
   };
 }
 
@@ -1568,6 +1985,7 @@ function beginGameplay(mission){
 
   buildObjectivePips();
   el('trench-controls').innerHTML='';
+  el('tank-shelter-controls').innerHTML='';
   buildCoverLockButtons();
   resizeCanvas();
 
@@ -1634,9 +2052,14 @@ function deployPlayerUnit(key){
   const u = UNIT_TYPES[key];
   if(G.supply < u.cost) return;
   if(G.cooldowns[key] > 0) return;
+  if(u.uniqueLimit && G.units.some(uu=>uu.type===key && uu.side==='player' && uu.hp>0)) return;
   G.supply -= u.cost;
   G.cooldowns[key] = u.cooldown;
-  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0 });
+  G.units.push({ id:G.nextUnitId++, side:'player', type:key, x: 26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
+  if(campaignStats.unitsDeployed[key]!==undefined){
+    campaignStats.unitsDeployed[key]++;
+    saveStats();
+  }
 }
 
 function weightedPick(comp){
@@ -1664,7 +2087,7 @@ function aiMaybeSpawn(dt){
   const u = UNIT_TYPES[key];
   if(G.enemySupply >= u.cost){
     G.enemySupply -= u.cost;
-    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0 });
+    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp:u.hp, maxHp:u.hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
   }
   G.aiTimer = (m.enemySpawnMin + Math.random()*(m.enemySpawnMax-m.enemySpawnMin)) / intensity;
 }
@@ -1679,9 +2102,39 @@ const COVER_DAMAGE_MULT = { trench:0.8, bunker:0.65, wall:0.85 };
 const BULLET_WEAPONS = { infantry:true, mg:true, sniper:true };
 const TANK_BULLET_RESIST = 0.3;
 
-function fireWeapon(u, target, uDef){
+function fortifiedMult(side, base){
+  return (side==='player') ? base*(1-upgradeValue('fieldFortification')) : base;
+}
+
+function effectiveAccuracy(u, uDef){
   let acc = uDef.accuracy;
-  if(target.inTrench) acc *= (target.coverMult || TRENCH_COVER_MULT);
+  if(u.side==='player'){
+    acc *= (1 + upgradeValue('veteranCadre'));
+    if(u.type==='infantry') acc *= (1 + upgradeValue('marksmanshipTraining'));
+  }
+  return Math.min(0.97, acc);
+}
+
+function nearbyFriendlyCommander(u){
+  if(!G) return false;
+  for(const o of G.units){
+    if(o.type!=='commander' || o.side!==u.side || o.hp<=0) continue;
+    if(Math.abs(o.x-u.x) <= COMMANDER_AURA_RADIUS) return true;
+  }
+  return false;
+}
+
+function effectiveAtkInterval(u, uDef){
+  let mult = 1;
+  if(u.side==='player' && u.type==='mg') mult *= (1 - upgradeValue('extendedBelts'));
+  if(nearbyFriendlyCommander(u)) mult *= (1-COMMANDER_ATTACK_SPEED_BONUS);
+  return uDef.atkInterval * mult;
+}
+
+function fireWeapon(u, target, uDef){
+  let acc = effectiveAccuracy(u, uDef);
+  if(target.inTrench || target.sheltering) acc *= (target.coverMult || TRENCH_COVER_MULT);
+  acc *= (1 - smokeMissPenalty(u));
   const hit = Math.random() < acc;
   const effDur = uDef.key==='artillery' ? 0.5 : (uDef.key==='mg' ? 0.12 : 0.18);
   G.effects.push({
@@ -1691,7 +2144,7 @@ function fireWeapon(u, target, uDef){
     hit
   });
 
-  if(target.type==='infantry' && !target.inTrench){
+  if(target.type==='infantry' && !target.inTrench && !target.sheltering){
     target.suppressed = true;
     target.suppressTimer = SUPPRESS_DURATION;
   }
@@ -1708,7 +2161,7 @@ function fireWeapon(u, target, uDef){
   }
 
   if(hit){
-    let dmgMult = target.inTrench ? (target.coverDmgMult || 0.8) : 1;
+    let dmgMult = (target.inTrench || target.sheltering) ? (target.coverDmgMult || 0.8) : 1;
     if(target.type==='tank' && BULLET_WEAPONS[uDef.key] && !isGrenadeHit){
       dmgMult *= TANK_BULLET_RESIST;
     }
@@ -1719,7 +2172,7 @@ function fireWeapon(u, target, uDef){
       for(const o of G.units){
         if(o===target || o.side===u.side || o.hp<=0) continue;
         if(Math.abs(o.x-target.x) <= uDef.splash){
-          const oMult = o.inTrench ? (o.coverDmgMult || 0.8) : 1;
+          const oMult = (o.inTrench || o.sheltering) ? (o.coverDmgMult || 0.8) : 1;
           const sd = Math.max(1, Math.round(uDef.dmg*uDef.splashRatio*oMult));
           o.hp -= sd;
           spawnFloatText(o.x, '-'+sd, '#ffb37a');
@@ -1742,6 +2195,93 @@ function updateTankMoveSound(u, dt){
   }
 }
 
+/* ===================== SUPPORT ABILITIES: MORTAR STRIKE / SMOKE SCREEN ===================== */
+
+function abilityUnlocked(id){
+  return upgradeLevel(id==='mortar' ? 'mortarUnlock' : 'smokeUnlock') >= 1;
+}
+
+function beginAbilityTargeting(id){
+  if(!G || G.over || paused) return;
+  if(!abilityUnlocked(id)) return;
+  if(G.abilityCooldowns[id] > 0) return;
+  G.pendingAbility = (G.pendingAbility===id) ? null : id;
+  showHint(G.pendingAbility ? 'Click the battlefield to mark the ' + (id==='mortar'?'mortar strike':'smoke screen') + ' — click the button again to cancel.' : 'Targeting cancelled.');
+}
+
+function resolveAbilityTargetClick(worldX){
+  if(!G || !G.pendingAbility) return false;
+  const id = G.pendingAbility;
+  G.pendingAbility = null;
+  if(id==='mortar') executeMortarStrike(worldX);
+  else if(id==='smoke') executeSmokeScreen(worldX);
+  return true;
+}
+
+function executeMortarStrike(targetX){
+  const rounds = MORTAR_BASE_ROUNDS + upgradeValue('mortarExplosions');
+  const scatterRadius = MORTAR_BASE_RADIUS * (1 - upgradeValue('mortarAccuracy'));
+  const dmg = MORTAR_BASE_DAMAGE * (1 + upgradeValue('mortarDamage'));
+  for(let i=0;i<rounds;i++){
+    const offset = (Math.random()*2-1) * scatterRadius;
+    const landX = Math.max(20, Math.min(G.laneLength-20, targetX+offset));
+    G.mortarQueue.push({ x: landX, timer: MORTAR_TRAVEL_DELAY + i*MORTAR_ROUND_INTERVAL, dmg });
+  }
+  G.abilityCooldowns.mortar = MORTAR_COOLDOWN;
+}
+
+function triggerMortarImpact(x, dmg){
+  G.units.forEach(u=>{
+    if(u.hp<=0) return;
+    const d = Math.abs(u.x-x);
+    if(d<=MORTAR_SPLASH){
+      const falloff = 1 - (d/MORTAR_SPLASH)*0.5;
+      const dealt = Math.max(1, Math.round(dmg*falloff));
+      u.hp -= dealt;
+      spawnFloatText(u.x, '-'+dealt, '#ffb37a');
+    }
+  });
+  G.effects.push({ type:'mortarBlast', x1:x, x2:x, side:'player', born:G.elapsed, dur:0.9 });
+  Music.playExplosion(x, 'large');
+  triggerShake(1.1, 0.35);
+}
+
+function executeSmokeScreen(targetX){
+  const duration = SMOKE_BASE_DURATION + upgradeValue('smokeDuration');
+  const missBonus = SMOKE_BASE_MISS + upgradeValue('smokeMissPercent');
+  const radius = SMOKE_BASE_RADIUS * (1 + upgradeValue('smokeArea'));
+  G.smokeClouds.push({ x:targetX, radius, missBonus, timer:duration, duration });
+  G.abilityCooldowns.smoke = SMOKE_COOLDOWN;
+  Music.playSmokeDeploy(targetX);
+}
+
+function smokeMissPenalty(u){
+  if(!G.smokeClouds || !G.smokeClouds.length) return 0;
+  let best = 0;
+  for(const c of G.smokeClouds){
+    if(Math.abs(u.x-c.x) <= c.radius) best = Math.max(best, c.missBonus);
+  }
+  return best;
+}
+
+function updateAbilities(dt){
+  if(G.abilityCooldowns.mortar>0) G.abilityCooldowns.mortar = Math.max(0, G.abilityCooldowns.mortar-dt);
+  if(G.abilityCooldowns.smoke>0) G.abilityCooldowns.smoke = Math.max(0, G.abilityCooldowns.smoke-dt);
+
+  if(G.mortarQueue.length){
+    G.mortarQueue.forEach(r=> r.timer -= dt);
+    G.mortarQueue = G.mortarQueue.filter(r=>{
+      if(r.timer<=0){ triggerMortarImpact(r.x, r.dmg); return false; }
+      return true;
+    });
+  }
+
+  if(G.smokeClouds.length){
+    G.smokeClouds.forEach(c=> c.timer -= dt);
+    G.smokeClouds = G.smokeClouds.filter(c=> c.timer > 0);
+  }
+}
+
 function triggerShake(mag, dur){
   if(!G) return;
   G.shakeMag = mag;
@@ -1752,24 +2292,39 @@ function triggerShake(mag, dur){
 function step(dt){
   if(G.over) return;
   G.elapsed += dt;
-  G.supply = Math.min(G.supplyMax, G.supply + G.mission.supplyRate*dt);
+  G.supply = Math.min(G.supplyMax, G.supply + G.mission.supplyRate*(1+upgradeValue('logisticsCorps'))*dt);
   for(const k of UNIT_ORDER) if(G.cooldowns[k]>0) G.cooldowns[k] = Math.max(0, G.cooldowns[k]-dt);
   if(G.shakeTime>0) G.shakeTime = Math.max(0, G.shakeTime-dt);
 
   aiMaybeSpawn(dt);
   updateAmbient(dt);
+  updateAbilities(dt);
 
   const alive = G.units.filter(u=>u.hp>0);
 
   for(const u of alive){
     const uDef = UNIT_TYPES[u.type];
     if(u.coverLock>0) u.coverLock = Math.max(0, u.coverLock-dt);
+    if(u.shelterLock>0) u.shelterLock = Math.max(0, u.shelterLock-dt);
     if(u.suppressTimer>0){
       u.suppressTimer = Math.max(0, u.suppressTimer-dt);
       if(u.suppressTimer<=0) u.suppressed = false;
     }
+
+    if(u.sheltering){
+      const tank = alive.find(o=>o.id===u.shelterTankId && o.hp>0);
+      if(tank){
+        const dir = u.side==='player' ? -1 : 1;
+        const slotOffset = (u.shelterSlot===0 ? -8 : 8);
+        u.x = tank.x + dir*TANK_SHELTER_TRAIL + slotOffset;
+      } else {
+        releaseFromTankShelter(u, false);
+      }
+    }
+
     const suppressBonus = (u.suppressed && u.type==='infantry') ? SUPPRESS_RANGE_BONUS : 0;
-    const effRange = uDef.range + (u.inTrench ? (u.rangeBonus||TRENCH_RANGE_BONUS) : 0) + suppressBonus;
+    const coverRangeBonus = (u.inTrench || u.sheltering) ? (u.rangeBonus||TRENCH_RANGE_BONUS) : 0;
+    const effRange = uDef.range + coverRangeBonus + suppressBonus;
     let target=null, bestDist=Infinity;
     for(const o of alive){
       if(o.side===u.side || o.hp<=0) continue;
@@ -1780,9 +2335,9 @@ function step(dt){
       u.atkTimer -= dt;
       if(u.atkTimer<=0){
         fireWeapon(u, target, uDef);
-        u.atkTimer = uDef.atkInterval;
+        u.atkTimer = effectiveAtkInterval(u, uDef);
       }
-      if(u.suppressed && u.type==='infantry' && !u.inTrench){
+      if(u.suppressed && u.type==='infantry' && !u.inTrench && !u.sheltering){
         const crawlSpeed = uDef.speed*SUPPRESS_MOVE_MULT;
         if(u.side==='player') u.x = Math.min(G.laneLength-40, u.x + crawlSpeed*dt);
         else u.x = Math.max(40, u.x - crawlSpeed*dt);
@@ -1790,7 +2345,13 @@ function step(dt){
       continue;
     }
 
+    const medicsRate = u.side==='player' ? upgradeValue('combatMedics') : 0;
+    if(medicsRate>0 && u.hp < u.maxHp){
+      u.hp = Math.min(u.maxHp, u.hp + u.maxHp*medicsRate*dt);
+    }
+
     if(u.inTrench){ continue; }
+    if(u.sheltering){ continue; }
 
     if(uDef.canGarrison){
       let joined=false;
@@ -1800,13 +2361,31 @@ function step(dt){
           if(Math.abs(tr.x-u.x) <= TRENCH_JOIN_RADIUS && tr.occupants.length < tr.capacity){
             u.inTrench = true;
             u.trenchSlot = tr.occupants.length;
-            u.coverMult = COVER_MULT[tr.type];
+            u.coverMult = fortifiedMult(u.side, COVER_MULT[tr.type]);
             u.rangeBonus = (u.type==='infantry' && tr.type==='trench')
               ? Math.max(COVER_RANGE_BONUS[tr.type], UNIT_TYPES.mg.range - uDef.range)
               : COVER_RANGE_BONUS[tr.type];
-            u.coverDmgMult = COVER_DAMAGE_MULT[tr.type];
+            u.coverDmgMult = fortifiedMult(u.side, COVER_DAMAGE_MULT[tr.type]);
             u.x = tr.x;
             tr.occupants.push(u.id);
+            joined = true;
+            break;
+          }
+        }
+      }
+      if(!joined && u.type==='infantry' && u.side==='player' && !(u.shelterLock>0)){
+        for(const o of alive){
+          if(o.type!=='tank' || o.side!==u.side || o.hp<=0) continue;
+          if(!o.shelterIds) o.shelterIds = [];
+          if(o.shelterIds.length >= TANK_SHELTER_CAPACITY) continue;
+          if(Math.abs(o.x-u.x) <= TANK_SHELTER_RADIUS){
+            u.sheltering = true;
+            u.shelterTankId = o.id;
+            u.shelterSlot = o.shelterIds.length;
+            u.coverMult = fortifiedMult(u.side, COVER_MULT.trench);
+            u.coverDmgMult = fortifiedMult(u.side, COVER_DAMAGE_MULT.trench);
+            u.rangeBonus = Math.max(TRENCH_RANGE_BONUS, UNIT_TYPES.mg.range - uDef.range);
+            o.shelterIds.push(u.id);
             joined = true;
             break;
           }
@@ -1857,6 +2436,10 @@ function step(dt){
   G.units = G.units.filter(u=>{
     if(u.hp<=0){
       if(u.side==='player') G.unitsLost++;
+      else{
+        registerEnemyKill();
+        if(campaignStats.enemyEliminated[u.type]!==undefined) campaignStats.enemyEliminated[u.type]++;
+      }
       const corpse = { x:u.x, side:u.side, type:u.type, row:u.row, timer:CORPSE_LIFETIME };
       if(u.inTrench){
         corpse.trenchRef = G.trenches.find(t=>t.occupants.includes(u.id)) || null;
@@ -1869,6 +2452,11 @@ function step(dt){
   });
   const aliveIds = new Set(G.units.map(u=>u.id));
   G.trenches.forEach(tr=>{ tr.occupants = tr.occupants.filter(id=>aliveIds.has(id)); });
+  G.units.forEach(u=>{
+    if(u.type==='tank' && u.shelterIds && u.shelterIds.length){
+      u.shelterIds = u.shelterIds.filter(id=>aliveIds.has(id));
+    }
+  });
 
   G.corpses.forEach(c=> c.timer -= dt);
   G.corpses = G.corpses.filter(c=> c.timer > 0);
@@ -1977,6 +2565,8 @@ function advanceOrFinishStage(){
   showHint(G.stage.hint || G.stage.label || 'New phase.');
 }
 
+let pendingCampaignEnding = false;
+
 function endMission(result, desc){
   G.over = true;
   G.result = result;
@@ -1989,8 +2579,25 @@ function endMission(result, desc){
   el('result-time').textContent = formatTime(G.elapsed);
   el('result-objectives').textContent = G.objectives.length ? `${capturedCount}/${G.objectives.length}` : '—';
   el('result-losses').textContent = G.unitsLost;
+  el('result-xp').textContent = G.missionKills||0;
+  el('result-sp').textContent = G.missionSPEarned||0;
+  el('result-eliminated').textContent = G.missionKills||0;
   el('overlay-result').classList.add('active');
-  Music.start('menu');
+
+  if(result==='win'){
+    G.celebrating = true;
+    G.celebrateTime = 0;
+    Music.playVictoryFanfare();
+    const isFinalMission = MISSIONS.length && MISSIONS[MISSIONS.length-1].id === G.mission.id;
+    pendingCampaignEnding = !!isFinalMission;
+    el('btn-back-briefing').textContent = pendingCampaignEnding ? 'Continue \u2192' : 'Briefing Room';
+    celebrationLastTs = performance.now();
+    if(celebrationRafId) cancelAnimationFrame(celebrationRafId);
+    celebrationRafId = requestAnimationFrame(celebrationLoop);
+  } else {
+    Music.start('menu');
+    el('btn-back-briefing').textContent = 'Briefing Room';
+  }
 }
 
 function formatTime(s){
@@ -2000,6 +2607,27 @@ function formatTime(s){
 }
 
 /* ===================== TRENCH CONTROLS ===================== */
+
+function releaseFromTankShelter(u, pushForward){
+  u.sheltering = false;
+  u.shelterTankId = null;
+  u.shelterSlot = null;
+  u.shelterLock = SHELTER_RELEASE_LOCK;
+  if(pushForward){
+    u.x += (u.side==='player' ? 1 : -1) * (TANK_SHELTER_RADIUS + 10);
+  }
+}
+
+function releaseTankShelter(tankId){
+  if(!G) return;
+  const tank = G.units.find(u=>u.id===tankId);
+  G.units.forEach(u=>{
+    if(u.type==='infantry' && u.sheltering && u.shelterTankId===tankId){
+      releaseFromTankShelter(u, true);
+    }
+  });
+  if(tank) tank.shelterIds = [];
+}
 
 function releaseTrench(i){
   if(!G) return;
@@ -2046,6 +2674,32 @@ function updateTrenchControls(w, groundY){
   Array.prototype.slice.call(container.querySelectorAll('.trench-btn')).forEach(btn=>{
     const idx = parseInt(btn.dataset.trench,10);
     if(!activeIdx.has(idx)) btn.remove();
+  });
+}
+
+function updateTankShelterControls(w, groundY){
+  const container = el('tank-shelter-controls');
+  const activeIds = new Set();
+  G.units.forEach(u=>{
+    if(u.type!=='tank' || u.side!=='player' || !u.shelterIds) return;
+    if(u.shelterIds.length < TANK_SHELTER_CAPACITY) return;
+    activeIds.add(u.id);
+    let btn = container.querySelector('[data-tank="'+u.id+'"]');
+    if(!btn){
+      btn = document.createElement('button');
+      btn.className='trench-btn';
+      btn.dataset.tank = u.id;
+      btn.addEventListener('click', ()=> releaseTankShelter(u.id));
+      container.appendChild(btn);
+    }
+    const x = laneToPx(u.x, w);
+    btn.style.left = x+'px';
+    btn.style.top = (groundY-70)+'px';
+    btn.textContent = 'Advance (' + u.shelterIds.length + ') · Behind Armor';
+  });
+  Array.prototype.slice.call(container.querySelectorAll('.trench-btn')).forEach(btn=>{
+    const id = parseInt(btn.dataset.tank,10);
+    if(!activeIds.has(id)) btn.remove();
   });
 }
 
@@ -2685,6 +3339,25 @@ function drawCorpse(x, y, c){
   ctx.restore();
 }
 
+function drawCommanderSprite(fill, facing){
+  ctx.save();
+  ctx.fillStyle='rgba(20,19,14,0.4)';
+  ctx.fillRect(-3,4,6,4);
+  ctx.fillStyle=fill;
+  ctx.fillRect(-4,-6,8,10);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1; ctx.strokeRect(-4,-6,8,10);
+  ctx.fillStyle='rgba(20,19,14,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(-5,-6); ctx.lineTo(5,-6); ctx.lineTo(3,-10); ctx.lineTo(-3,-10); ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(-6,-6,12,2);
+  ctx.strokeStyle='#201f19'; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.moveTo(3*facing,-4); ctx.lineTo(9*facing,-7); ctx.stroke();
+  ctx.fillStyle='#b8933c';
+  ctx.beginPath(); ctx.arc(0,-1,1.6,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 function drawUnitSprite(x, y, u, scale){
   scale = (scale || 1) * SPRITE_SCALE;
   const pat = ensurePatterns();
@@ -2701,6 +3374,7 @@ function drawUnitSprite(x, y, u, scale){
     case 'sniper': drawSniperSprite(fill, facing, hpPct); break;
     case 'artillery': drawArtillerySprite(fill, facing, hpPct); break;
     case 'tank': drawTankSprite(fill, facing, hpPct); break;
+    case 'commander': drawCommanderSprite(fill, facing); break;
   }
   ctx.restore();
   drawHpBar(x, y+18*scale, hpPct);
@@ -2823,8 +3497,83 @@ function drawEffects(w, groundY){
         ctx.lineWidth=3;
         ctx.beginPath(); ctx.arc(x2,y,r,0,Math.PI*2); ctx.stroke();
       }
+    } else if(e.type==='mortarBlast'){
+      const alpha = 1-t;
+      const r = 8 + t*55;
+      ctx.fillStyle = `rgba(255,150,60,${alpha*0.55})`;
+      ctx.beginPath(); ctx.arc(x1,y,r*0.6,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle = `rgba(255,190,110,${alpha*0.8})`;
+      ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(x1,y,r,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle = `rgba(90,86,78,${alpha*0.5})`;
+      ctx.beginPath(); ctx.arc(x1,y-r*0.4,r*0.7,0,Math.PI*2); ctx.fill();
+      if(!e._debris){
+        e._debris = [];
+        for(let i=0;i<7;i++){
+          const ang = Math.random()*Math.PI - Math.PI;
+          e._debris.push({ ang, len: 20+Math.random()*30 });
+        }
+      }
+      ctx.strokeStyle = `rgba(40,36,30,${alpha*0.7})`;
+      ctx.lineWidth=1.6;
+      e._debris.forEach(d=>{
+        const dx = Math.cos(d.ang)*d.len*t, dy = -Math.abs(Math.sin(d.ang))*d.len*t*1.4;
+        ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x1+dx,y+dy); ctx.stroke();
+      });
     }
   }
+}
+
+function spawnConfettiMaybe(dt){
+  if(!G || !G.celebrating) return;
+  if(Math.random() < dt*6){
+    G.confetti.push({
+      x: Math.random(), y: -0.05,
+      vy: 0.15+Math.random()*0.15,
+      drift: (Math.random()*2-1)*0.05,
+      color: ['#b8933c','#79883a','#a13d2b','#eee5c4','#c9bd8f'][Math.floor(Math.random()*5)],
+      rot: Math.random()*Math.PI*2,
+      spin: (Math.random()*2-1)*4,
+    });
+  }
+  G.confetti.forEach(c=>{
+    c.y += c.vy*dt;
+    c.x += c.drift*dt;
+    c.rot += c.spin*dt;
+  });
+  G.confetti = G.confetti.filter(c=> c.y < 1.15);
+}
+
+function drawConfetti(w, h){
+  G.confetti.forEach(c=>{
+    ctx.save();
+    ctx.translate(c.x*w, c.y*h);
+    ctx.rotate(c.rot);
+    ctx.fillStyle = c.color;
+    ctx.fillRect(-3,-5,6,10);
+    ctx.restore();
+  });
+}
+
+function drawSmokeClouds(w, groundY){
+  if(!G.smokeClouds || !G.smokeClouds.length) return;
+  G.smokeClouds.forEach(c=>{
+    const fadeIn = Math.min(1, (c.duration - c.timer)/0.6);
+    const fadeOut = Math.min(1, c.timer/1.0);
+    const alpha = Math.min(fadeIn, fadeOut);
+    const cx = laneToPx(c.x, w);
+    const rPx = Math.abs(laneToPx(c.x+c.radius, w) - cx);
+    const puffs = 5;
+    for(let i=0;i<puffs;i++){
+      const ang = (i/puffs)*Math.PI*2 + c.x*0.01;
+      const px = cx + Math.cos(ang)*rPx*0.5;
+      const py = groundY - 14 + Math.sin(ang)*10;
+      ctx.fillStyle = `rgba(200,198,190,${0.32*alpha})`;
+      ctx.beginPath(); ctx.arc(px,py,rPx*0.42,0,Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = `rgba(210,208,200,${0.22*alpha})`;
+    ctx.beginPath(); ctx.ellipse(cx, groundY-14, rPx*0.7, 26, 0,0,Math.PI*2); ctx.fill();
+  });
 }
 
 function drawFloatingText(w, groundY){
@@ -2905,21 +3654,41 @@ function render(){
     drawCorpse(x, y, c);
   }
 
+  G.units.forEach(u=>{
+    if(u.type==='commander' && u.side==='player' && u.hp>0){
+      const cx = laneToPx(u.x, w);
+      const rPx = Math.abs(laneToPx(u.x+COMMANDER_AURA_RADIUS, w) - cx);
+      ctx.save();
+      ctx.strokeStyle='rgba(184,147,60,0.35)';
+      ctx.setLineDash([4,4]);
+      ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.ellipse(cx, groundY-6, rPx, 14, 0, 0, Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+  });
+
   for(const u of G.units){
     const x = laneToPx(u.x, w);
+    const bounce = (G.celebrating && u.side==='player' && u.hp>0)
+      ? -Math.abs(Math.sin(G.celebrateTime*4 + u.id))*7
+      : 0;
     if(u.inTrench){
       const tr = G.trenches.find(t=>t.occupants.includes(u.id));
       const spacing = tr ? Math.max(12,(tr.w||70)/4) : 14;
       const slotOffset = (u.trenchSlot!=null ? (u.trenchSlot-1)*spacing : 0);
-      drawUnitSprite(x+slotOffset, groundY-6, u, 0.85);
+      drawUnitSprite(x+slotOffset, groundY-6+bounce, u, 0.85);
     } else {
-      drawUnitSprite(x, groundY-10+rowOffset(u.row), u, rowScale(u.row));
+      drawUnitSprite(x, groundY-10+rowOffset(u.row)+bounce, u, rowScale(u.row));
     }
   }
 
+  if(G.celebrating) drawConfetti(w, h);
+
   drawEffects(w, groundY);
+  drawSmokeClouds(w, groundY);
   drawFloatingText(w, groundY);
   updateTrenchControls(w, groundY);
+  updateTankShelterControls(w, groundY);
   positionCoverLockButtons(w, groundY);
 
   if(G.precip){
@@ -3004,8 +3773,24 @@ function updateHud(){
     const veil = el('veil-'+key);
     const cd = G.cooldowns[key];
     const affordable = G.supply >= u.cost;
-    btn.disabled = !affordable || cd>0;
-    veil.style.height = cd>0 ? Math.min(100,(cd/u.cooldown*100))+'%' : '0%';
+    const blocked = !!(u.uniqueLimit && G.units.some(uu=>uu.type===key && uu.side==='player' && uu.hp>0));
+    btn.disabled = !affordable || cd>0 || blocked;
+    veil.style.height = blocked ? '100%' : (cd>0 ? Math.min(100,(cd/u.cooldown*100))+'%' : '0%');
+  });
+  updateSupportBar();
+}
+
+function updateSupportBar(){
+  ['mortar','smoke'].forEach(id=>{
+    const btn = el('support-btn-'+id);
+    const veil = el('support-veil-'+id);
+    const sub = el('support-sub-'+id);
+    const unlocked = abilityUnlocked(id);
+    const cd = G.abilityCooldowns[id];
+    btn.disabled = !unlocked || cd>0;
+    btn.classList.toggle('armed', G.pendingAbility===id);
+    veil.style.height = !unlocked ? '100%' : (cd>0 ? Math.min(100,(cd/(id==='mortar'?MORTAR_COOLDOWN:SMOKE_COOLDOWN)*100))+'%' : '0%');
+    sub.textContent = !unlocked ? 'Locked' : (cd>0 ? Math.ceil(cd)+'s' : (G.pendingAbility===id ? 'Click field...' : 'Ready'));
   });
 }
 
@@ -3021,17 +3806,102 @@ function loop(ts){
   updateHud();
 }
 
+function celebrationLoop(ts){
+  if(!G || !G.celebrating){ celebrationRafId = null; return; }
+  celebrationRafId = requestAnimationFrame(celebrationLoop);
+  const dt = Math.min(0.05, (ts-celebrationLastTs)/1000);
+  celebrationLastTs = ts;
+  G.celebrateTime = (G.celebrateTime||0) + dt;
+  spawnConfettiMaybe(dt);
+  render();
+}
+
+function stopCelebration(){
+  if(celebrationRafId){ cancelAnimationFrame(celebrationRafId); celebrationRafId = null; }
+  if(G) G.celebrating = false;
+}
+
+/* ===================== CAMPAIGN ENDING (final mission victory) ===================== */
+
+let creditsTimeout = null;
+
+const UNIT_DISPLAY_LABEL = {
+  infantry:'Rifle Squads', mg:'Machine Gun Teams', sniper:'Snipers',
+  artillery:'Artillery Batteries', tank:'Armor', commander:'Field Commanders'
+};
+
+function buildCreditsContent(){
+  const content = el('credits-content');
+  if(!content) return;
+  const dep = campaignStats.unitsDeployed;
+  const elim = campaignStats.enemyEliminated;
+  const deployedLines = Object.keys(dep)
+    .map(k=>`<div class="credits-stat-line">${UNIT_DISPLAY_LABEL[k]}: ${dep[k]}</div>`).join('');
+  const elimLines = Object.keys(elim)
+    .map(k=>`<div class="credits-stat-line">${UNIT_DISPLAY_LABEL[k]}: ${elim[k]}</div>`).join('');
+
+  content.innerHTML = `
+    <h1>The War Is Over</h1>
+    <p>Twelve operations. Six years. One long road from the Battle of Britain to Okinawa.</p>
+
+    <h2>Forces You Deployed</h2>
+    ${deployedLines}
+
+    <h2>Enemy Forces Eliminated</h2>
+    ${elimLines}
+
+    <h2>Campaign Totals</h2>
+    <div class="credits-stat-line">Operations Completed: ${progress.completed.size} / ${MISSIONS.length}</div>
+    <div class="credits-stat-line">Total Enemy Losses: ${campaignStats.kills}</div>
+    <div class="credits-stat-line">Skill Points Earned: ${campaignStats.totalSPEarned}</div>
+
+    <h2>In Memory</h2>
+    <p>Historians estimate World War II caused somewhere between 70 and 85 million deaths worldwide, military and civilian combined — the deadliest conflict in human history. Rough estimates of military dead include the Soviet Union (roughly 8 to 11 million), Germany (roughly 5 million), Japan (roughly 2 million), China (several million), the United Kingdom (about 384,000), and the United States (about 416,000). Figures vary by source and many are still debated by historians.</p>
+    <p>The numbers from your campaign above are a small abstraction for the sake of a game — nowhere close in scale, and not meant to be compared directly. This is a tribute to those who lived through it, not a measure of it.</p>
+
+    <h2>Thank You For Playing</h2>
+    <p>Tactical Command</p>
+  `;
+}
+
+function startCampaignEnding(){
+  el('overlay-result').classList.remove('active');
+  buildCreditsContent();
+  el('overlay-campaign-end').classList.add('active');
+  const content = el('credits-content');
+  content.style.animation = 'none';
+  void content.offsetWidth;
+  content.style.animation = '';
+  if(creditsTimeout) clearTimeout(creditsTimeout);
+  creditsTimeout = setTimeout(finishCampaignEnding, 51000);
+}
+
+function finishCampaignEnding(){
+  if(creditsTimeout){ clearTimeout(creditsTimeout); creditsTimeout = null; }
+  el('overlay-campaign-end').classList.remove('active');
+  stopCelebration();
+  backToBriefing();
+}
+
 /* ===================== CONTROLS ===================== */
 
 el('btn-pause').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
 el('btn-resume').addEventListener('click', ()=>{ paused = false; el('overlay-pause').classList.remove('active'); lastTs = performance.now(); });
 el('btn-pause-quit').addEventListener('click', backToBriefing);
 el('btn-quit').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
-el('btn-back-briefing').addEventListener('click', backToBriefing);
-el('btn-retry').addEventListener('click', ()=>{ if(G) startMission(G.mission.id); });
+el('btn-back-briefing').addEventListener('click', ()=>{
+  if(pendingCampaignEnding){
+    pendingCampaignEnding = false;
+    startCampaignEnding();
+  } else {
+    backToBriefing();
+  }
+});
+el('btn-retry').addEventListener('click', ()=>{ if(G){ stopCelebration(); startMission(G.mission.id); } });
 
 function backToBriefing(){
   paused = false;
+  stopCelebration();
   if(rafId) cancelAnimationFrame(rafId);
   el('overlay-pause').classList.remove('active');
   el('overlay-result').classList.remove('active');
@@ -3059,6 +3929,14 @@ window.addEventListener('keydown', (e)=>{
 let dragging=false, dragStartClientX=0, dragStartCameraX=0;
 canvas.addEventListener('pointerdown', (e)=>{
   if(!G) return;
+  if(G.pendingAbility){
+    const rect = canvas.getBoundingClientRect();
+    const frac = (e.clientX - rect.left) / rect.width;
+    const left = G.camera.x - G.camera.viewWidth/2;
+    const worldX = left + frac*G.camera.viewWidth;
+    resolveAbilityTargetClick(worldX);
+    return;
+  }
   dragging=true;
   dragStartClientX = e.clientX;
   dragStartCameraX = G.camera.x;
@@ -3079,6 +3957,8 @@ canvas.addEventListener('pointerleave', endDrag);
 /* ---- nav buttons ---- */
 el('cam-left').addEventListener('click', ()=> panCameraBy(-150));
 el('cam-right').addEventListener('click', ()=> panCameraBy(150));
+el('support-btn-mortar').addEventListener('click', ()=> beginAbilityTargeting('mortar'));
+el('support-btn-smoke').addEventListener('click', ()=> beginAbilityTargeting('smoke'));
 el('cam-home').addEventListener('click', ()=>{
   if(!G) return;
   G.camera.x = G.camera.viewWidth*0.58;
@@ -3117,12 +3997,31 @@ el('cinematic-skip').addEventListener('click', ()=>{
   if(inCinematic) endCinematic();
 });
 
+el('credits-skip').addEventListener('click', finishCampaignEnding);
+
+el('skill-badge').addEventListener('click', ()=>{
+  buildUpgradesList();
+  el('overlay-upgrades').classList.add('active');
+});
+el('btn-close-upgrades').addEventListener('click', ()=>{
+  el('overlay-upgrades').classList.remove('active');
+});
+
 el('btn-reset-progress').addEventListener('click', async ()=>{
   if(!confirm('Reset all campaign progress? This cannot be undone.')) return;
   progress.unlocked = new Set([MISSIONS[0].id]);
   progress.completed = new Set();
+  campaignStats.kills = 0;
+  campaignStats.skillPoints = 0;
+  campaignStats.nextThreshold = 20;
+  campaignStats.totalSPEarned = 0;
+  campaignStats.upgradeLevels = {};
+  campaignStats.unitsDeployed = { infantry:0, mg:0, sniper:0, artillery:0, tank:0, commander:0 };
+  campaignStats.enemyEliminated = { infantry:0, mg:0, sniper:0, artillery:0, tank:0 };
   try{ await window.storage.delete(PROGRESS_KEY, false); } catch(err){}
+  try{ await window.storage.delete(STATS_KEY, false); } catch(err){}
   refreshPinStates();
+  updateSkillBadge();
   if(selectedMissionId){
     const m = MISSIONS.find(mm=>mm.id===selectedMissionId);
     if(m) renderMissionPanel(m);
