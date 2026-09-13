@@ -1151,60 +1151,64 @@ const MISSIONS = [
     mode:'escort', laneLength:1000, playerBaseHp:200,
     startSupply:32, supplyRate:5.6, enemySupplyRate:6.8, enemySpawnMin:1.0, enemySpawnMax:2.0,
     enemyComposition:{infantry:.35, mg:.25, sniper:.15, artillery:.15, tank:.1}, difficulty:3,
-    convoy:{ hp:540, speed:18 } },
+    convoy:{ hp:540, speed:18 }, weather:'leaves' },
 
   { id:'stalingrad', theater:'europe', code:'Stalingrad', date:'August 1942 – February 1943', place:'Stalingrad, Soviet Union', mapX:345, mapY:230,
     brief:'The city has to hold, block by block, no matter the cost.',
     mode:'defense', surviveTime:170, laneLength:950, playerBaseHp:260,
     startSupply:34, supplyRate:5, enemySupplyRate:7.6, enemySpawnMin:0.85, enemySpawnMax:1.75,
-    enemyComposition:{infantry:.4, mg:.2, sniper:.15, artillery:.15, tank:.1}, difficulty:4 },
+    enemyComposition:{infantry:.4, mg:.2, sniper:.15, artillery:.15, tank:.1}, difficulty:4, weather:'ash' },
 
   { id:'north-africa', theater:'africa', code:'El Alamein', date:'October–November 1942', place:'Western Desert, Egypt', mapX:190, mapY:460,
     brief:'Fight through the minefields and destroy the enemy fuel depot before their armor can be resupplied.',
-    mode:'demolition', laneLength:950, playerBaseHp:200,
-    startSupply:32, supplyRate:5.8, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
-    enemyComposition:{infantry:.25, mg:.25, sniper:.15, artillery:.15, tank:.2}, difficulty:3,
-    demoTarget:{ frac:0.72, hp:260 } },
+    mode:'demolition', laneLength:950, playerBaseHp:215,
+    startSupply:32, supplyRate:5.8, enemySupplyRate:8.2, enemySpawnMin:0.9, enemySpawnMax:1.85,
+    enemyComposition:{infantry:.2, mg:.25, sniper:.15, artillery:.15, tank:.25}, difficulty:4,
+    demoTarget:{ frac:0.72, hp:300 }, weather:'dust' },
 
   { id:'kursk', theater:'europe', code:'Kursk', date:'July 1943', place:'Kursk, Soviet Union', mapX:370, mapY:175,
     brief:"The German offensive has stalled in the salient. Break their exhausted armor before they can withdraw.",
-    mode:'assault', laneLength:1050, playerBaseHp:210, enemyBaseHp:260,
-    startSupply:32, supplyRate:6, enemySupplyRate:7, enemySpawnMin:0.95, enemySpawnMax:1.9,
-    enemyComposition:{infantry:.2, mg:.2, sniper:.1, artillery:.2, tank:.3}, difficulty:4,
-    objectives:[0.3,0.55,0.8] },
+    mode:'assault', laneLength:1050, playerBaseHp:225, enemyBaseHp:300,
+    startSupply:32, supplyRate:6, enemySupplyRate:8, enemySpawnMin:0.85, enemySpawnMax:1.75,
+    enemyComposition:{infantry:.15, mg:.2, sniper:.1, artillery:.2, tank:.35}, difficulty:5,
+    objectives:[0.3,0.55,0.8], weather:'dust' },
 
   { id:'normandy', theater:'europe', code:'Overlord — Normandy', date:'June 6, 1944', place:'Normandy, France', mapX:150, mapY:270,
     brief:'Establish a beachhead, silence the coastal defenses, and push inland.',
-    mode:'assault', laneLength:1100, playerBaseHp:190, enemyBaseHp:220,
-    startSupply:30, supplyRate:6.2, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
-    enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.2, tank:.1}, difficulty:3,
+    mode:'assault', laneLength:1100, playerBaseHp:205, enemyBaseHp:250,
+    startSupply:30, supplyRate:6.2, enemySupplyRate:8, enemySpawnMin:0.9, enemySpawnMax:1.85,
+    enemyComposition:{infantry:.25, mg:.25, sniper:.15, artillery:.2, tank:.15}, difficulty:4,
     objectives:[0.3,0.55,0.8], weather:'rain' },
 
   { id:'market-garden', theater:'europe', code:'Market Garden', date:'September 1944', place:'Arnhem, Netherlands', mapX:230, mapY:140,
     brief:"Airborne troops are holding the far bridge. Fight up the corridor and link up before they're overrun.",
-    mode:'assault', laneLength:1050, playerBaseHp:190, enemyBaseHp:240,
-    startSupply:30, supplyRate:6, enemySupplyRate:7.2, enemySpawnMin:1.0, enemySpawnMax:2.0,
-    enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.2, tank:.1}, difficulty:4,
-    objectives:[0.25,0.5,0.75] },
+    mode:'assault', laneLength:1050, playerBaseHp:205, enemyBaseHp:270,
+    startSupply:30, supplyRate:6, enemySupplyRate:8.3, enemySpawnMin:0.9, enemySpawnMax:1.8,
+    enemyComposition:{infantry:.25, mg:.25, sniper:.15, artillery:.2, tank:.15}, difficulty:4,
+    objectives:[0.25,0.5,0.75], weather:'leaves' },
 
   { id:'bulge', theater:'europe', code:'The Ardennes — Bulge', date:'Dec 1944 – Jan 1945', place:'Ardennes Forest, Belgium', mapX:265, mapY:195,
-    brief:'A winter counteroffensive tears through the line. Hold your ground until reinforcements arrive.',
-    mode:'defense', surviveTime:180, laneLength:1000, playerBaseHp:250,
-    startSupply:35, supplyRate:5, enemySupplyRate:8, enemySpawnMin:0.85, enemySpawnMax:1.7,
-    enemyComposition:{infantry:.25, mg:.15, sniper:.1, artillery:.2, tank:.3}, difficulty:4, weather:'snow' },
+    brief:'Two phases: hold the perimeter through the siege, then break out and destroy the fuel depot keeping their offensive moving.',
+    mode:'multistage', laneLength:1000, playerBaseHp:260,
+    startSupply:35, supplyRate:5, enemySupplyRate:8.5, enemySpawnMin:0.8, enemySpawnMax:1.6,
+    enemyComposition:{infantry:.2, mg:.15, sniper:.1, artillery:.2, tank:.35}, difficulty:5, weather:'snow',
+    stages:[
+      { type:'defense', surviveTime:110, label:'Phase 1 — Hold the Perimeter', hint:'The garrison is surrounded and the weather has grounded air support. Hold until the skies clear.' },
+      { type:'demolition', demoTarget:{ frac:0.68, hp:300 }, label:'Phase 2 — Cut Their Fuel', hint:'Their offensive is running on fumes. Break out and destroy the fuel depot to finish it for good.' },
+    ] },
 
   { id:'iwo-jima', theater:'pacific', code:'Detachment — Iwo Jima', date:'Feb–Mar 1945', place:'Iwo Jima, Volcano Islands', mapX:900, mapY:345,
     brief:'A dug-in garrison contests every yard of volcanic rock. Take it position by position.',
-    mode:'assault', laneLength:1000, playerBaseHp:210, enemyBaseHp:290,
-    startSupply:30, supplyRate:5.6, enemySupplyRate:6.6, enemySpawnMin:1.05, enemySpawnMax:2.1,
-    enemyComposition:{infantry:.25, mg:.3, sniper:.15, artillery:.2, tank:.1}, difficulty:4,
-    objectives:[0.25,0.5,0.75] },
+    mode:'assault', laneLength:1000, playerBaseHp:225, enemyBaseHp:330,
+    startSupply:30, supplyRate:5.6, enemySupplyRate:7.8, enemySpawnMin:0.9, enemySpawnMax:1.85,
+    enemyComposition:{infantry:.2, mg:.3, sniper:.15, artillery:.25, tank:.1}, difficulty:5,
+    objectives:[0.25,0.5,0.75], weather:'ash' },
 
   { id:'okinawa', theater:'pacific', code:'Iceberg — Okinawa', date:'Apr–Jun 1945', place:'Okinawa, Ryukyu Islands', mapX:935, mapY:410,
     brief:'The largest amphibious assault of the Pacific war. Break the final defensive belt.',
-    mode:'assault', laneLength:1200, playerBaseHp:230, enemyBaseHp:330,
-    startSupply:30, supplyRate:6, enemySupplyRate:8.2, enemySpawnMin:0.8, enemySpawnMax:1.7,
-    enemyComposition:{infantry:.2, mg:.25, sniper:.15, artillery:.2, tank:.2}, difficulty:5,
+    mode:'assault', laneLength:1200, playerBaseHp:245, enemyBaseHp:360,
+    startSupply:30, supplyRate:6, enemySupplyRate:9, enemySpawnMin:0.75, enemySpawnMax:1.6,
+    enemyComposition:{infantry:.15, mg:.25, sniper:.15, artillery:.2, tank:.25}, difficulty:5,
     objectives:[0.2,0.4,0.6,0.8] },
 ];
 MISSIONS.forEach(m=>{ m.env = ENV[m.id]; });
@@ -1750,10 +1754,15 @@ function phaseElapsed(){
 }
 
 function makeParticles(type){
-  const count = type==='rain' ? 110 : 70;
+  const counts = { snow:70, rain:110, dust:85, ash:65, leaves:50 };
+  const count = counts[type] || 70;
   const flakes=[];
   for(let i=0;i<count;i++){
-    flakes.push({ x:Math.random(), y:Math.random(), s:0.3+Math.random()*0.7, r:1+Math.random()*2 });
+    flakes.push({
+      x:Math.random(), y:Math.random(), s:0.3+Math.random()*0.7, r:1+Math.random()*2,
+      drift:(Math.random()*2-1), rot:Math.random()*Math.PI*2, spin:(Math.random()*2-1)*2,
+      ember: type==='ash' && Math.random()<0.15
+    });
   }
   return { type, items:flakes };
 }
@@ -1808,8 +1817,8 @@ const CINEMATIC_LINES = {
   ],
   'bulge': [
     'December 1944 — under cover of winter fog, enemy divisions mass in the Ardennes.',
-    'At dawn they strike, punching through the thin Allied line.',
-    'Reinforcements are coming. The line has to hold until they arrive.'
+    'At dawn they strike, encircling an entire garrison at a vital crossroads.',
+    'Hold the perimeter. Then find their fuel, and end the offensive for good.'
   ],
   'iwo-jima': [
     "Weeks of naval bombardment have failed to silence the island's defenses.",
@@ -1971,7 +1980,7 @@ function updatePhaseUI(){
   el('enemy-hp-block').style.display = showTimer ? 'none' : 'block';
   let label = 'Enemy HQ';
   if(G.mission.mode==='escort') label = 'Convoy';
-  else if(G.mission.mode==='demolition') label = 'Target';
+  else if(phase==='demolition') label = 'Target';
   el('enemy-hp-label').textContent = label;
 }
 
@@ -2412,7 +2421,7 @@ function step(dt){
     const moveSpeed = (u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed;
 
     if(u.side==='player'){
-      if(G.mission.mode==='demolition' && G.demoTarget && !G.demoTarget.destroyed && Math.abs(u.x-G.demoTarget.x) <= 36){
+      if(currentPhaseType()==='demolition' && G.demoTarget && !G.demoTarget.destroyed && Math.abs(u.x-G.demoTarget.x) <= 36){
         G.demoTarget.hp -= uDef.dmg*dt*1.4;
       } else if(u.x >= G.laneLength-40){
         if(currentPhaseType()==='assault') G.enemyBase.hp -= uDef.dmg*dt*1.4;
@@ -2525,6 +2534,13 @@ function step(dt){
         advanceOrFinishStage();
         return;
       }
+    } else if(G.stage.type==='demolition'){
+      if(G.demoTarget && G.demoTarget.hp <= 0 && !G.demoTarget.destroyed){
+        G.demoTarget.destroyed = true;
+        G.demoTarget.hp = 0;
+        advanceOrFinishStage();
+        return;
+      }
     } else {
       if(phaseElapsed() >= G.surviveTime){
         advanceOrFinishStage();
@@ -2556,6 +2572,14 @@ function advanceOrFinishStage(){
   G.surviveTime = G.stage.surviveTime||0;
   G.enemyBase.maxHp = G.stage.enemyBaseHp || 1;
   G.enemyBase.hp = G.stage.enemyBaseHp || 0;
+  if(G.stage.type==='demolition' && G.stage.demoTarget){
+    G.demoTarget = {
+      x: G.stage.demoTarget.frac*G.laneLength,
+      hp: G.stage.demoTarget.hp,
+      maxHp: G.stage.demoTarget.hp,
+      destroyed: false
+    };
+  }
   // The previous phase's escalation can leave the enemy sitting on a large banked
   // supply — without this, that stockpile would empty out as a flood of units the
   // instant the new phase begins. Reset it and give the player a short breather.
@@ -2790,6 +2814,27 @@ function drawAmbient(w, h, groundY){
   a.planes.forEach(p=>{
     drawPlaneSilhouette(p.x*w, p.y*h, p.dir, p.type);
   });
+
+  a.dogfights.forEach(d=>{
+    const yLead = d.y*h + d.fallY*h;
+    const yChase = d.y*h - 9;
+    if(d.burstFlash>0){
+      ctx.strokeStyle = `rgba(255,220,140,${Math.min(1,d.burstFlash*4)})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(d.xChase*w,yChase); ctx.lineTo(d.xLead*w,yLead); ctx.stroke();
+    }
+    if(d.hit){
+      for(let i=0;i<4;i++){
+        const back = d.dir>0 ? -1 : 1;
+        ctx.fillStyle = `rgba(70,68,62,${0.32-i*0.06})`;
+        ctx.beginPath();
+        ctx.arc(d.xLead*w + back*10*(i+1), yLead - i*4, 3.5+i*1.1, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+    drawPlaneSilhouette(d.xLead*w, yLead, d.dir, 'fighter');
+    drawPlaneSilhouette(d.xChase*w, yChase, d.dir, 'fighter');
+  });
 }
 
 function drawShipSilhouette(x, y, dir){
@@ -2827,6 +2872,8 @@ function makeAmbient(){
     boatTimer: 5+Math.random()*8,
     flaks:[],
     flakTimer: 4+Math.random()*5,
+    dogfights:[],
+    dogfightTimer: 30+Math.random()*30,
   };
 }
 
@@ -2912,6 +2959,38 @@ function updateAmbient(dt){
   }
   a.flaks.forEach(f=> f.age += dt);
   a.flaks = a.flaks.filter(f=> f.age < f.life);
+
+  a.dogfightTimer -= dt;
+  if(a.dogfightTimer<=0){
+    const dir = Math.random()<0.5 ? 1 : -1;
+    const y = 0.06+Math.random()*0.1;
+    const speed = 0.045+Math.random()*0.015;
+    a.dogfights.push({
+      dir, y, speed,
+      xLead: dir>0 ? -0.05 : 1.05,
+      xChase: dir>0 ? -0.13 : 1.13,
+      age:0, life: 10+Math.random()*4,
+      hit:false, fallY:0,
+      nextBurst: 0.7+Math.random()*0.6,
+    });
+    Music.playPlaneDrone(dir, 7);
+    a.dogfightTimer = 45+Math.random()*50;
+  }
+  a.dogfights.forEach(d=>{
+    d.age += dt;
+    d.xLead += d.dir*d.speed*dt;
+    d.xChase += d.dir*d.speed*(d.hit?0.85:1.08)*dt;
+    d.nextBurst -= dt;
+    if(!d.hit && d.nextBurst<=0){
+      d.nextBurst = 0.9+Math.random()*0.9;
+      d.burstFlash = 0.18;
+      Music.playShot('mg', G.camera.x);
+      if(Math.random()<0.4) d.hit = true;
+    }
+    if(d.burstFlash>0) d.burstFlash -= dt;
+    if(d.hit) d.fallY += dt*0.03;
+  });
+  a.dogfights = a.dogfights.filter(d=> d.age < d.life);
 }
 
 function laneToPx(x, w){
@@ -3708,6 +3787,41 @@ function render(){
         const px=f.x*w, py=f.y*h;
         ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px-3,py+12); ctx.stroke();
       }
+    } else if(G.precip.type==='dust'){
+      for(const f of G.precip.items){
+        f.x += 0.00035*f.s*f.drift;
+        if(f.x>1.05) f.x=-0.05; if(f.x<-0.05) f.x=1.05;
+        f.y += 0.00012*f.s;
+        if(f.y>1) f.y=0;
+        ctx.fillStyle = `rgba(196,168,110,${0.22+0.1*f.s})`;
+        ctx.beginPath(); ctx.ellipse(f.x*w, f.y*h, f.r*2.4, f.r*0.8, 0, 0, Math.PI*2); ctx.fill();
+      }
+    } else if(G.precip.type==='ash'){
+      for(const f of G.precip.items){
+        f.y += 0.0009*f.s;
+        f.x += 0.00025*Math.sin(f.y*20+f.rot);
+        if(f.y>1){ f.y=0; f.x=Math.random(); }
+        if(f.ember){
+          ctx.fillStyle='rgba(255,140,60,0.85)';
+          ctx.beginPath(); ctx.arc(f.x*w, f.y*h, f.r*1.3, 0, Math.PI*2); ctx.fill();
+        } else {
+          ctx.fillStyle='rgba(55,52,48,0.5)';
+          ctx.beginPath(); ctx.arc(f.x*w, f.y*h, f.r, 0, Math.PI*2); ctx.fill();
+        }
+      }
+    } else if(G.precip.type==='leaves'){
+      for(const f of G.precip.items){
+        f.y += 0.00075*f.s;
+        f.x += 0.00045*Math.sin(f.rot);
+        f.rot += 0.02*f.spin;
+        if(f.y>1){ f.y=0; f.x=Math.random(); }
+        ctx.save();
+        ctx.translate(f.x*w, f.y*h);
+        ctx.rotate(f.rot);
+        ctx.fillStyle='rgba(178,108,48,0.55)';
+        ctx.beginPath(); ctx.ellipse(0,0, f.r*2.1, f.r*1.1, 0, 0, Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
     }
   }
 
@@ -3763,7 +3877,7 @@ function updateHud(){
   } else {
     let pct = 0;
     if(G.mission.mode==='escort') pct = Math.max(0, G.convoy.hp/G.convoy.maxHp*100);
-    else if(G.mission.mode==='demolition') pct = Math.max(0, G.demoTarget.hp/G.demoTarget.maxHp*100);
+    else if(currentPhaseType()==='demolition') pct = Math.max(0, G.demoTarget.hp/G.demoTarget.maxHp*100);
     else pct = Math.max(0, G.enemyBase.hp/G.enemyBase.maxHp*100);
     el('bar-enemy').style.width = pct+'%';
   }
