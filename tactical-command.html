@@ -114,6 +114,14 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 .deploy-btn:disabled{ opacity:0.4; cursor:not-allowed; }
 
 .briefing-footer{ text-align:center; margin-top:24px; font-size:12px; color:var(--parchment-dim); opacity:0.7; }
+.mainmenu-side-btn{
+  position:fixed; left:16px; top:12px; z-index:200;
+  background:rgba(20,19,14,0.6); border:1px solid var(--line); color:var(--parchment-2);
+  padding:10px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:7px;
+}
+.mainmenu-side-btn:hover{ background:var(--olive); border-color:var(--parchment-2); }
+.mainmenu-side-btn:active{ transform:scale(0.96); }
+.reset-progress-btn .veteran-icon{ width:13px; height:13px; vertical-align:-2px; margin:0 5px; }
 .reset-progress-btn{
   margin-top:8px; background:none; border:none; color:var(--parchment-dim);
   font-size:11px; text-decoration:underline; cursor:pointer; opacity:0.8; padding:4px;
@@ -136,7 +144,16 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 }
 .skill-badge:hover{ background:rgba(184,147,60,0.25); border-color:var(--brass); }
 
-.upgrades-card{ max-width:840px; text-align:left; max-height:82vh; overflow-y:auto; }
+.upgrades-card{ max-width:840px; text-align:left; max-height:82vh; overflow-y:auto; position:relative; }
+.overlay-close-x{
+  position:absolute; top:12px; right:14px; z-index:2;
+  width:30px; height:30px; border-radius:50%; padding:0;
+  background:rgba(20,19,14,0.5); border:1px solid var(--line); color:var(--parchment-2);
+  font-size:18px; line-height:1; display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+}
+.overlay-close-x:hover{ background:var(--olive); border-color:var(--parchment-2); }
+.overlay-close-x:active{ transform:scale(0.92); }
 .upgrades-card h2{ text-align:center; }
 .upgrades-card .desc{ text-align:center; }
 .upgrades-list{ display:flex; flex-direction:column; gap:22px; margin-bottom:20px; }
@@ -376,6 +393,16 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
 .trench-btn:hover{ background:var(--olive); border-color:var(--parchment-2); }
 .trench-btn:active{ transform:translate(-50%,-100%) scale(0.95); }
 
+.cover-advance-group{ position:absolute; display:flex; gap:4px; pointer-events:none; }
+.cover-advance-icon{
+  pointer-events:auto; cursor:pointer; padding:0;
+  width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+  background:var(--panel-2); border:1px solid var(--brass); color:var(--parchment-2);
+  border-radius:4px; box-shadow:0 2px 0 rgba(0,0,0,0.35);
+}
+.cover-advance-icon:hover{ background:var(--olive); border-color:var(--parchment-2); }
+.cover-advance-icon:active{ transform:scale(0.9); }
+
 .cover-locks{ position:absolute; inset:0; pointer-events:none; z-index:7; }
 .lock-btn{
   position:absolute; transform:translate(-50%,-100%);
@@ -436,9 +463,7 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
         <div class="mode-card-desc">Deploy onto a random battlefield and hold as long as you can.</div>
       </button>
     </div>
-    <div class="briefing-footer">
-      <button class="reset-progress-btn" id="btn-laststand-to-mainmenu">&#8592; Main Menu</button>
-    </div>
+    <button class="mainmenu-side-btn" id="btn-laststand-to-mainmenu">&#8592; Main Menu</button>
   </section>
 
   <!-- ============ BRIEFING SCREEN ============ -->
@@ -510,9 +535,9 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
     </div>
     <div class="briefing-footer">
       A tribute to those who served — simplified for gameplay, not a historical simulation.
-      <br><button class="reset-progress-btn" id="btn-to-mainmenu">&#8592; Main Menu</button>
-      <button class="reset-progress-btn" id="btn-reset-progress">Reset Campaign Progress</button>
+      <br><button class="reset-progress-btn" id="btn-reset-progress"><svg class="veteran-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15 12 8l8 7M4 20 12 13l8 7" fill="none" stroke="currentColor" stroke-width="2.4"/></svg>Reset Campaign Progress<svg class="veteran-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M4 15 12 8l8 7M4 20 12 13l8 7" fill="none" stroke="currentColor" stroke-width="2.4"/></svg></button>
     </div>
+    <button class="mainmenu-side-btn" id="btn-to-mainmenu">&#8592; Main Menu</button>
   </section>
 
   <button class="mute-btn" id="btn-mute" title="Toggle music">&#128266;</button>
@@ -607,6 +632,17 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
   </div>
 </div>
 
+<div class="overlay" id="overlay-ls-surrender-confirm">
+  <div class="overlay-card">
+    <h2>Surrender?</h2>
+    <div class="desc">Are you sure you want to end this run? Your Last Stand Points, Best Wave, and Longest Stand will be saved.</div>
+    <div class="overlay-actions">
+      <button class="primary" id="btn-ls-surrender-confirm">Yes, Surrender</button>
+      <button id="btn-ls-surrender-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay-result">
   <div class="overlay-card">
     <h2 id="result-title">—</h2>
@@ -630,12 +666,10 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
 
 <div class="overlay" id="overlay-upgrades">
   <div class="overlay-card upgrades-card">
+    <button class="overlay-close-x" id="btn-close-upgrades">&times;</button>
     <h2>Field Upgrades</h2>
     <div class="desc">Spend skill points earned from enemy kills on permanent campaign upgrades. Each is a one-time purchase.</div>
     <div class="upgrades-list" id="upgrades-list"></div>
-    <div class="overlay-actions">
-      <button class="primary" id="btn-close-upgrades">Close</button>
-    </div>
   </div>
 </div>
 
@@ -1030,9 +1064,9 @@ const TRENCH_JOIN_RADIUS = 24;
 const TRENCH_RANGE_BONUS = 25;
 const TRENCH_COVER_MULT = 0.6;
 const COVER_RELEASE_LOCK = 2.0;
-const COVER_CAPACITY = { trench:3, bunker:2, wall:2 };
-const COVER_MULT = { trench:0.6, bunker:0.5, wall:0.7 };
-const COVER_RANGE_BONUS = { trench:25, bunker:20, wall:15 };
+const COVER_CAPACITY = { trench:3, bunker:2, wall:2, wedge:2 };
+const COVER_MULT = { trench:0.6, bunker:0.5, wall:0.7, wedge:0.7 };
+const COVER_RANGE_BONUS = { trench:25, bunker:20, wall:15, wedge:15 };
 
 const TANK_SHELTER_CAPACITY = 2;
 const TANK_SHELTER_RADIUS = 40;
@@ -1560,6 +1594,20 @@ const UPGRADE_ICONS = {
   clock:     '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l4 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
 };
 
+const UNIT_ICONS = {
+  infantry:  '<path d="M3 20 19 4M21 20 5 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/><rect x="2" y="17" width="4" height="2" rx="0.5"/><rect x="18" y="17" width="4" height="2" rx="0.5"/>',
+  mg:        '<rect x="2" y="10" width="20" height="4" rx="1"/><rect x="4" y="5" width="3" height="5" rx="1"/><rect x="10.5" y="5" width="3" height="5" rx="1"/><rect x="17" y="5" width="3" height="5" rx="1"/>',
+  sniper:    '<circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5" stroke="currentColor" stroke-width="2"/>',
+  artillery: '<path d="M12 21 6 9l6-6 6 6Z"/><rect x="4" y="20" width="16" height="2" rx="1"/>',
+  tank:      '<rect x="3" y="11" width="16" height="6" rx="1"/><rect x="9" y="7" width="7" height="5" rx="1"/><rect x="14" y="8.5" width="7" height="1.6" rx="0.5"/><circle cx="6" cy="18" r="1.6"/><circle cx="10" cy="18" r="1.6"/><circle cx="14" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/>',
+  commander: '<path d="M4 15 12 8l8 7M4 20 12 13l8 7" fill="none" stroke="currentColor" stroke-width="2.4"/>',
+};
+
+function unitIconSvg(type){
+  const path = UNIT_ICONS[type] || UNIT_ICONS.infantry;
+  return `<svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">${path}</svg>`;
+}
+
 function upgradeIconSvg(iconKey){
   const path = UPGRADE_ICONS[iconKey] || UPGRADE_ICONS.crosshair;
   return `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">${path}</svg>`;
@@ -1729,11 +1777,11 @@ function buildCommandBar(){
     btn.innerHTML = `
       <span class="unit-key">${i+1}</span>
       <div class="row1">
-        <div class="unit-chip">${u.abbr}</div>
+        <div class="unit-chip">${unitIconSvg(key)}</div>
         <div class="unit-name">${u.label}</div>
       </div>
       <div class="unit-cost">${u.cost} supply</div>
-      <div class="unit-acc">${Math.round(u.accuracy*100)}% hit · range ${u.range}</div>
+      <div class="unit-acc">${Math.round(u.accuracy*100)}% hit · range ${u.range} · dmg ${u.dmg}</div>
       <div class="cooldown-veil" id="veil-${key}" style="height:0%;"></div>
     `;
     btn.addEventListener('click', ()=> deployPlayerUnit(key));
@@ -2015,6 +2063,7 @@ function seedCinematicAmbient(mission, ambient){
 function startCinematic(id){
   activeMode = 'campaign';
   updateSkillBadgeVisibility();
+  updateWithdrawButtonLabels();
   const mission = MISSIONS.find(m=>m.id===id);
   G = makeGameState(mission);
   seedCinematicAmbient(mission, G.ambient);
@@ -2085,6 +2134,7 @@ function endCinematic(){
 function startMission(id){
   activeMode = 'campaign';
   updateSkillBadgeVisibility();
+  updateWithdrawButtonLabels();
   const mission = MISSIONS.find(m=>m.id===id);
   if(!mission) return;
   screenBriefing.classList.remove('active');
@@ -2230,13 +2280,19 @@ function aiMaybeSpawn(dt){
   }
   G.aiTimer -= dt;
   if(G.aiTimer > 0) return;
-  const key = weightedPick(m.mode==='laststand' ? lastStandComposition() : m.enemyComposition);
-  const u = UNIT_TYPES[key];
-  if(G.enemySupply >= u.cost){
+  const isLastStand = m.mode==='laststand';
+  const [minBurst, maxBurst] = isLastStand ? lastStandBurstRange() : [1,1];
+  const burstCount = minBurst===maxBurst ? minBurst : (minBurst + Math.floor(Math.random()*(maxBurst-minBurst+1)));
+  for(let i=0;i<burstCount;i++){
+    const key = weightedPick(isLastStand ? lastStandComposition() : m.enemyComposition);
+    const u = UNIT_TYPES[key];
+    if(G.enemySupply < u.cost) break;
     G.enemySupply -= u.cost;
-    const hpMult = m.mode==='laststand' ? lastStandEnemyHpMult() : 1;
+    const hpMult = isLastStand ? lastStandEnemyHpMult() : 1;
     const hp = u.hp*hpMult;
-    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:G.laneLength-26, hp, maxHp:hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
+    const jitter = burstCount>1 ? (Math.random()*2-1)*22 : 0;
+    const spawnX = Math.max(20, Math.min(G.laneLength-20, G.laneLength-26+jitter));
+    G.units.push({ id:G.nextUnitId++, side:'enemy', type:key, x:spawnX, hp, maxHp:hp, atkTimer:0, row:(G.nextUnitId%3), inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0, shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[] });
   }
   G.aiTimer = (m.enemySpawnMin + Math.random()*(m.enemySpawnMax-m.enemySpawnMin)) / intensity;
 }
@@ -2247,7 +2303,7 @@ function spawnFloatText(x, text, color){
   G.floatingText.push({ x, text, color, born:G.elapsed });
 }
 
-const COVER_DAMAGE_MULT = { trench:0.8, bunker:0.65, wall:0.85 };
+const COVER_DAMAGE_MULT = { trench:0.8, bunker:0.65, wall:0.85, wedge:0.75 };
 const BULLET_WEAPONS = { infantry:true, mg:true, sniper:true };
 const TANK_BULLET_RESIST = 0.3;
 
@@ -2577,6 +2633,7 @@ function step(dt){
       let joined=false;
       if(!(u.coverLock>0)){
         for(const tr of G.trenches){
+          if(tr.type==='wedge') continue;
           if(u.side==='player' && tr.playerLocked) continue;
           if(Math.abs(tr.x-u.x) <= TRENCH_JOIN_RADIUS && tr.occupants.length < tr.capacity){
             u.inTrench = true;
@@ -2613,6 +2670,27 @@ function step(dt){
       }
       if(joined) continue;
     } else {
+      // Vehicles can settle into a vehicle wedge — a separate lane of cover just for them —
+      // becoming stationary in place, similar to how infantry garrison a trench.
+      let wedgeJoined = false;
+      if((u.type==='tank' || u.type==='artillery') && !(u.coverLock>0)){
+        for(const tr of G.trenches){
+          if(tr.type!=='wedge') continue;
+          if(u.side==='player' && tr.playerLocked) continue;
+          if(Math.abs(tr.x-u.x) <= TRENCH_JOIN_RADIUS && tr.occupants.length < tr.capacity){
+            u.inTrench = true;
+            u.trenchSlot = tr.occupants.length;
+            u.coverMult = fortifiedMult(u.side, COVER_MULT.wedge);
+            u.coverDmgMult = fortifiedMult(u.side, COVER_DAMAGE_MULT.wedge);
+            u.rangeBonus = COVER_RANGE_BONUS.wedge;
+            u.x = tr.x;
+            tr.occupants.push(u.id);
+            wedgeJoined = true;
+            break;
+          }
+        }
+      }
+      if(wedgeJoined) continue;
       // Armor and Artillery are structural units: they can't dig into cover,
       // but they'll pause for a few seconds the first time they reach a strongpoint.
       if(u.stallTimer > 0){
@@ -2629,7 +2707,9 @@ function step(dt){
       }
     }
 
-    const moveSpeed = ((u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed) * (u.speedMult||1);
+    const inBarbedWire = u.side==='enemy' && G.barbedWires && G.barbedWires.some(bw => Math.abs(u.x-bw.x) <= bw.width/2);
+    const wireMult = inBarbedWire ? 0.75 : 1;
+    const moveSpeed = ((u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed) * (u.speedMult||1) * wireMult;
 
     if(u.side==='player'){
       if(currentPhaseType()==='demolition' && G.demoTarget && !G.demoTarget.destroyed && Math.abs(u.x-G.demoTarget.x) <= 36){
@@ -2885,34 +2965,71 @@ function releaseTrench(i){
   });
 }
 
+function releaseUnitFromCover(trenchIdx, unitId){
+  const tr = G.trenches[trenchIdx];
+  if(!tr) return;
+  const u = G.units.find(uu=>uu.id===unitId);
+  if(!u || u.side!=='player') return;
+  tr.occupants = tr.occupants.filter(id=>id!==unitId);
+  u.inTrench = false;
+  u.trenchSlot = undefined;
+  u.coverLock = COVER_RELEASE_LOCK;
+  u.x += (TRENCH_JOIN_RADIUS+6);
+}
+
 function updateTrenchControls(w, groundY){
   const container = el('trench-controls');
   const activeIdx = new Set();
   G.trenches.forEach((tr, i)=>{
-    const playerCount = tr.occupants.reduce((n,id)=>{
-      const u = G.units.find(uu=>uu.id===id);
-      return n + (u && u.side==='player' ? 1 : 0);
-    }, 0);
-    if(playerCount===0) return;
+    const occupantUnits = tr.occupants
+      .map(id=>G.units.find(uu=>uu.id===id))
+      .filter(u=>u && u.side==='player');
+    if(!occupantUnits.length) return;
     activeIdx.add(i);
-    let btn = container.querySelector('[data-trench="'+i+'"]');
-    if(!btn){
-      btn = document.createElement('button');
-      btn.className='trench-btn';
-      btn.dataset.trench = i;
-      btn.addEventListener('click', ()=> releaseTrench(i));
-      container.appendChild(btn);
-    }
+
+    const isWedge = tr.type==='wedge';
     const x = laneToPx(tr.x, w);
-    btn.style.left = x+'px';
-    btn.style.top = (groundY-32)+'px';
-    const typeLabel = tr.type==='trench' ? 'Trench' : (tr.type==='bunker' ? 'Bunker' : 'Wall');
-    btn.textContent = 'Advance (' + playerCount + ') · ' + typeLabel;
+    let group = container.querySelector('[data-trenchgroup="'+i+'"]');
+    if(!group){
+      group = document.createElement('div');
+      group.className = 'cover-advance-group';
+      group.dataset.trenchgroup = i;
+      container.appendChild(group);
+    }
+    group.style.left = x+'px';
+    group.style.top = (isWedge ? (groundY+34) : (groundY-32))+'px';
+    group.style.transform = isWedge ? 'translate(-50%,0%)' : 'translate(-50%,-100%)';
+
+    const currentIds = new Set(occupantUnits.map(u=>u.id));
+    Array.prototype.slice.call(group.querySelectorAll('.cover-advance-icon')).forEach(btn=>{
+      const uid = parseInt(btn.dataset.unit,10);
+      if(!currentIds.has(uid)) btn.remove();
+    });
+    occupantUnits.forEach(u=>{
+      let btn = group.querySelector('[data-unit="'+u.id+'"]');
+      if(!btn){
+        btn = document.createElement('button');
+        btn.className = 'cover-advance-icon';
+        btn.dataset.unit = u.id;
+        btn.title = 'Advance this unit';
+        btn.innerHTML = unitIconSvg(u.type);
+        btn.addEventListener('click', ()=> releaseUnitFromCover(i, u.id));
+        group.appendChild(btn);
+      }
+    });
   });
-  Array.prototype.slice.call(container.querySelectorAll('.trench-btn')).forEach(btn=>{
-    const idx = parseInt(btn.dataset.trench,10);
-    if(!activeIdx.has(idx)) btn.remove();
+  Array.prototype.slice.call(container.querySelectorAll('.cover-advance-group')).forEach(group=>{
+    const idx = parseInt(group.dataset.trenchgroup,10);
+    if(!activeIdx.has(idx)) group.remove();
   });
+}
+
+function releaseSingleUnitFromShelter(unitId){
+  const u = G.units.find(uu=>uu.id===unitId);
+  if(!u || !u.sheltering) return;
+  const tank = G.units.find(uu=>uu.id===u.shelterTankId);
+  if(tank && tank.shelterIds) tank.shelterIds = tank.shelterIds.filter(id=>id!==unitId);
+  releaseFromTankShelter(u, true);
 }
 
 function updateTankShelterControls(w, groundY){
@@ -2922,22 +3039,41 @@ function updateTankShelterControls(w, groundY){
     if(u.type!=='tank' || u.side!=='player' || !u.shelterIds) return;
     if(u.shelterIds.length < TANK_SHELTER_CAPACITY) return;
     activeIds.add(u.id);
-    let btn = container.querySelector('[data-tank="'+u.id+'"]');
-    if(!btn){
-      btn = document.createElement('button');
-      btn.className='trench-btn';
-      btn.dataset.tank = u.id;
-      btn.addEventListener('click', ()=> releaseTankShelter(u.id));
-      container.appendChild(btn);
+    const shelteringUnits = u.shelterIds.map(id=>G.units.find(uu=>uu.id===id)).filter(Boolean);
+
+    let group = container.querySelector('[data-tank="'+u.id+'"]');
+    if(!group){
+      group = document.createElement('div');
+      group.className = 'cover-advance-group';
+      group.dataset.tank = u.id;
+      container.appendChild(group);
     }
     const x = laneToPx(u.x, w);
-    btn.style.left = x+'px';
-    btn.style.top = (groundY-70)+'px';
-    btn.textContent = 'Advance (' + u.shelterIds.length + ') · Behind Armor';
+    group.style.left = x+'px';
+    group.style.top = (groundY-70)+'px';
+    group.style.transform = 'translate(-50%,-100%)';
+
+    const currentIds = new Set(shelteringUnits.map(su=>su.id));
+    Array.prototype.slice.call(group.querySelectorAll('.cover-advance-icon')).forEach(btn=>{
+      const uid = parseInt(btn.dataset.unit,10);
+      if(!currentIds.has(uid)) btn.remove();
+    });
+    shelteringUnits.forEach(su=>{
+      let btn = group.querySelector('[data-unit="'+su.id+'"]');
+      if(!btn){
+        btn = document.createElement('button');
+        btn.className = 'cover-advance-icon';
+        btn.dataset.unit = su.id;
+        btn.title = 'Advance this unit';
+        btn.innerHTML = unitIconSvg(su.type);
+        btn.addEventListener('click', ()=> releaseSingleUnitFromShelter(su.id));
+        group.appendChild(btn);
+      }
+    });
   });
-  Array.prototype.slice.call(container.querySelectorAll('.trench-btn')).forEach(btn=>{
-    const id = parseInt(btn.dataset.tank,10);
-    if(!activeIds.has(id)) btn.remove();
+  Array.prototype.slice.call(container.querySelectorAll('.cover-advance-group')).forEach(group=>{
+    const id = parseInt(group.dataset.tank,10);
+    if(!activeIds.has(id)) group.remove();
   });
 }
 
@@ -3323,6 +3459,38 @@ function drawEnvironment(w, h, groundY){
   drawGroundPerspective(w, h, groundY);
   drawProps(w, groundY, env.props);
   drawDynamicTrenches(w, groundY);
+  drawBarbedWireZones(w, groundY);
+}
+
+function drawBarbedWireZones(w, groundY){
+  if(!G.barbedWires || !G.barbedWires.length) return;
+  G.barbedWires.forEach(bw=>{
+    const x = laneToPx(bw.x, w);
+    const halfW = laneToPx(bw.width, w) - laneToPx(0, w);
+    drawBarbedWire(x, groundY, Math.max(18, halfW));
+  });
+}
+
+function drawBarbedWire(x, gy, w){
+  const postCount = Math.max(2, Math.floor(w/16));
+  ctx.strokeStyle = 'rgba(20,18,14,0.85)';
+  ctx.lineWidth = 1.4;
+  for(let i=0;i<postCount;i++){
+    const px = x - w/2 + i*(w/(postCount-1||1));
+    ctx.beginPath(); ctx.moveTo(px, gy+2); ctx.lineTo(px, gy-9); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(120,112,96,0.9)';
+  ctx.lineWidth = 1;
+  for(let row=0; row<2; row++){
+    const wy = gy-8+row*5;
+    ctx.beginPath();
+    for(let i=0;i<=postCount*2;i++){
+      const px = x - w/2 + i*(w/(postCount*2||1));
+      const py = wy + (i%2===0 ? -2 : 2);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
 }
 
 function drawDynamicTrenches(w, groundY){
@@ -3332,7 +3500,29 @@ function drawDynamicTrenches(w, groundY){
     const x = laneToPx(tr.x, w);
     if(tr.type==='bunker') drawBunker(x, groundY);
     else if(tr.type==='wall') drawStoneWall(x, groundY, tr.w);
+    else if(tr.type==='wedge') drawVehicleWedge(x, groundY, tr.w);
     else drawTrench(x, groundY, tr.w);
+  }
+}
+
+function drawVehicleWedge(x, gy, w){
+  const wy = gy+18;
+  drawShadow(x, wy+5, w*0.55, 6);
+  ctx.fillStyle = 'rgba(60,52,36,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(x-w/2, wy+10);
+  ctx.lineTo(x-w/2+10, wy-6);
+  ctx.lineTo(x+w/2-10, wy-6);
+  ctx.lineTo(x+w/2, wy+10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle='rgba(30,24,16,0.8)'; ctx.lineWidth=1.2;
+  ctx.stroke();
+  const mounds = Math.max(2, Math.floor(w/22));
+  for(let i=0;i<mounds;i++){
+    const mx = x-w/2+14+i*20;
+    ctx.fillStyle = i%2===0 ? 'rgba(140,120,80,0.65)' : 'rgba(118,100,66,0.65)';
+    ctx.beginPath(); ctx.ellipse(mx, wy-6, 8, 4.5, 0, 0, Math.PI*2); ctx.fill();
   }
 }
 
@@ -3985,9 +4175,11 @@ function render(){
     const bossScale = u.isMiniBoss ? 1.35 : 1;
     if(u.inTrench){
       const tr = G.trenches.find(t=>t.occupants.includes(u.id));
+      const isWedge = tr && tr.type==='wedge';
       const spacing = tr ? Math.max(12,(tr.w||70)/4) : 14;
       const slotOffset = (u.trenchSlot!=null ? (u.trenchSlot-1)*spacing : 0);
-      drawUnitSprite(x+slotOffset, groundY-6+bounce, u, 0.85*bossScale);
+      const laneY = isWedge ? groundY+18 : groundY-6;
+      drawUnitSprite(x+slotOffset, laneY+bounce, u, (isWedge?1:0.85)*bossScale);
     } else {
       drawUnitSprite(x, groundY-10+rowOffset(u.row)+bounce, u, rowScale(u.row)*bossScale);
     }
@@ -4094,6 +4286,26 @@ function drawMinimap(){
 
   const vx1 = frac(G.camera.x - G.camera.viewWidth/2);
   const vx2 = frac(G.camera.x + G.camera.viewWidth/2);
+
+  const dotY = 4;
+  G.units.forEach(u=>{
+    if(u.hp<=0) return;
+    const x = frac(u.x);
+    if(u.isMiniBoss){
+      minimapCtx.save();
+      minimapCtx.translate(x, dotY);
+      minimapCtx.fillStyle = '#d94f3d';
+      minimapCtx.fillRect(-3,-2,6,4);
+      minimapCtx.fillRect(-1.5,-3,3,1.6);
+      minimapCtx.restore();
+    } else {
+      minimapCtx.beginPath();
+      minimapCtx.arc(x, dotY, 1.6, 0, Math.PI*2);
+      minimapCtx.fillStyle = u.side==='player' ? '#eee5c4' : '#d94f3d';
+      minimapCtx.fill();
+    }
+  });
+
   minimapCtx.strokeStyle='rgba(238,229,196,0.95)';
   minimapCtx.lineWidth=1.5;
   minimapCtx.strokeRect(vx1+1, 1, Math.max(2,vx2-vx1-2), mh-2);
@@ -4427,13 +4639,27 @@ function buildLastStandShop(){
 }
 
 function addLastStandTrench(type){
-  const dynamicCount = G.trenches.filter(t=>t.dynamic).length; // includes the starting trench
-  const x = Math.min(G.laneLength-50, 60 + dynamicCount*50);
+  const isWedge = type==='wedge';
+  const count = G.trenches.filter(t=> t.dynamic && (isWedge ? t.type==='wedge' : t.type!=='wedge')).length;
+  const x = Math.min(G.laneLength-50, 60 + count*50);
+  const widths = { bunker:32, wedge:50, trench:70 };
   G.trenches.push({
-    x, type, w: type==='bunker' ? 32 : 70,
+    x, type, w: widths[type] || 70,
     capacity: COVER_CAPACITY[type], occupants: [], playerLocked:false, dynamic:true
   });
-  showHint((type==='bunker' ? 'A bunker' : 'A trench') + ' has been dug in just ahead of your line.');
+  const labels = { bunker:'A bunker', wedge:'A vehicle wedge', trench:'A trench' };
+  const place = isWedge ? 'in its own lane alongside your line' : 'just ahead of your line';
+  showHint((labels[type] || 'A trench') + ' has been dug in ' + place + '.');
+}
+
+function addLastStandBarbedWire(){
+  if(!G.barbedWires) G.barbedWires = [];
+  const width = 40;
+  const count = G.barbedWires.length;
+  const baseX = G.laneLength - 70;
+  const x = Math.max(30, baseX - count*(width+15));
+  G.barbedWires.push({ x, width });
+  showHint('Barbed wire has been laid near the enemy line — anyone crossing it will be slowed.');
 }
 
 function spawnFreeLastStandSquad(){
@@ -4462,6 +4688,10 @@ const LS_RUN_UPGRADES = [
     apply(){ addLastStandTrench('trench'); } },
   { id:'bunkercomplex', name:'Bunker Complex', icon:'shield', desc:'Immediately build a new bunker just ahead of your line.',
     apply(){ addLastStandTrench('bunker'); } },
+  { id:'vehiclewedge', name:'Vehicle Wedge', icon:'shield', desc:'Immediately build a vehicle wedge — a separate defensive lane where an Armor or Artillery unit can hold position.',
+    apply(){ addLastStandTrench('wedge'); } },
+  { id:'barbedwire', name:'Barbed Wire', icon:'belt', desc:'Lay barbed wire near the enemy spawn — slows any enemy passing through it by 25% while they\'re in contact.',
+    apply(){ addLastStandBarbedWire(); } },
   { id:'grenadiers', name:'Grenadiers', icon:'mortar', desc:'+15% chance for Rifle Squads to lob a grenade in close combat.',
     apply(){ G.runMods.grenadeChanceBonus += 0.15; } },
   { id:'irondiscipline', name:'Iron Discipline', icon:'chevron', desc:'+25% damage, but -15% max HP for units you deploy from now on.',
@@ -4520,6 +4750,14 @@ function lastStandIntensity(){
   return Math.min(9, (base + drift) * mult * lsVeteranMult());
 }
 
+function lastStandBurstRange(){
+  const wave = (G.lsLevel||0)+1;
+  if(wave <= 10) return [1,1];
+  const minBurst = 3;
+  const maxBurst = Math.min(10, 6 + Math.floor((wave-11)/10));
+  return [minBurst, Math.max(minBurst, maxBurst)];
+}
+
 function lastStandComposition(){
   const level = G.lsLevel || 0; // level 0 = wave 1
   if(level < 5) return { infantry:1 };                                  // waves 1-5: riflemen only
@@ -4569,6 +4807,7 @@ function makeLastStandMission(){
 function beginLastStandRun(){
   activeMode = 'laststand';
   updateSkillBadgeVisibility();
+  updateWithdrawButtonLabels();
   const mission = makeLastStandMission();
   el('screen-laststand-menu').classList.remove('active');
   screenGame.classList.add('active');
@@ -4581,6 +4820,7 @@ function beginLastStandRun(){
   for(let i=0;i<hqStats.sniper;i++) G.hqSlots.push({ type:'sniper', atkTimer: Math.random()*0.4 });
   G.hqMortarEnabled = hqStats.mortar;
   G.hqMortarTimer = 20;
+  G.barbedWires = [];
   G.lsXPCap = LS_XP_BASE_CAP;
   G.lsKills = 0;
   G.waveCountdown = LS_WAVE_PREP_TIME;
@@ -4625,7 +4865,7 @@ function beginLastStandRun(){
   Music.stop();
 }
 
-function endLastStandRun(){
+function endLastStandRun(reason){
   G.over = true;
   cancelAnimationFrame(rafId);
   const wave = G.lsLevel;
@@ -4638,6 +4878,8 @@ function endLastStandRun(){
   lastStandStats.points += pointsEarned;
   saveLastStandStats();
 
+  el('ls-end-title').textContent = reason==='surrender' ? 'Run Ended' : 'Overrun';
+  el('ls-end-desc').textContent = reason==='surrender' ? 'You called it — your progress from this run has been saved.' : 'The line finally broke.';
   el('ls-end-wave').textContent = wave;
   el('ls-end-time').textContent = formatTime(timeSurvived);
   el('ls-end-kills').textContent = kills;
@@ -4649,7 +4891,25 @@ function endLastStandRun(){
 
 el('btn-pause').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
 el('btn-resume').addEventListener('click', ()=>{ paused = false; el('overlay-pause').classList.remove('active'); lastTs = performance.now(); });
-el('btn-pause-quit').addEventListener('click', backToBriefing);
+el('btn-pause-quit').addEventListener('click', ()=>{
+  if(G && G.mission.mode==='laststand' && !G.over){
+    el('overlay-pause').classList.remove('active');
+    el('overlay-ls-surrender-confirm').classList.add('active');
+  } else {
+    backToBriefing();
+  }
+});
+el('btn-ls-surrender-confirm').addEventListener('click', ()=>{
+  el('overlay-ls-surrender-confirm').classList.remove('active');
+  paused = false;
+  if(G && G.mission.mode==='laststand' && !G.over){
+    endLastStandRun('surrender');
+  }
+});
+el('btn-ls-surrender-cancel').addEventListener('click', ()=>{
+  el('overlay-ls-surrender-confirm').classList.remove('active');
+  el('overlay-pause').classList.add('active');
+});
 el('btn-quit').addEventListener('click', ()=>{ paused = true; el('overlay-pause').classList.add('active'); });
 el('btn-back-briefing').addEventListener('click', ()=>{
   if(pendingCampaignEnding){
@@ -4669,6 +4929,7 @@ function backToBriefing(){
   el('overlay-result').classList.remove('active');
   el('overlay-ls-end').classList.remove('active');
   el('overlay-ls-pick').classList.remove('active');
+  el('overlay-ls-surrender-confirm').classList.remove('active');
   screenGame.classList.remove('active');
   G = null;
   if(activeMode==='laststand'){
@@ -4799,6 +5060,12 @@ el('btn-reset-progress').addEventListener('click', async ()=>{
 });
 
 /* ---- main menu / last stand navigation ---- */
+function updateWithdrawButtonLabels(){
+  const isLastStand = activeMode==='laststand';
+  el('btn-quit').textContent = isLastStand ? 'Surrender' : 'Withdraw';
+  el('btn-pause-quit').textContent = isLastStand ? 'Surrender' : 'Withdraw to Briefing';
+}
+
 function updateSkillBadgeVisibility(){
   const badge = el('skill-badge');
   const onCampaign = screenBriefing.classList.contains('active') ||
