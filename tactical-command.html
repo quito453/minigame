@@ -144,7 +144,8 @@ button{ font-family:'Archivo',sans-serif; cursor:pointer; }
 }
 .skill-badge:hover{ background:rgba(184,147,60,0.25); border-color:var(--brass); }
 
-.upgrades-card{ max-width:840px; text-align:left; max-height:82vh; overflow-y:auto; position:relative; }
+.upgrades-card{ max-width:840px; text-align:left; max-height:82vh; position:relative; display:flex; flex-direction:column; }
+.upgrades-scroll-body{ overflow-y:auto; min-height:0; }
 .overlay-close-x{
   position:absolute; top:12px; right:14px; z-index:2;
   width:30px; height:30px; border-radius:50%; padding:0;
@@ -414,6 +415,12 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
 .lock-btn:hover{ border-color:var(--brass); }
 .lock-btn.locked{ background:rgba(161,61,43,0.55); border-color:var(--rust); }
 
+.cover-capacity-badge{
+  position:absolute; transform:translate(-50%,0%); pointer-events:none;
+  background:rgba(20,19,14,0.7); border:1px solid var(--line); color:var(--parchment-2);
+  font-size:9px; font-weight:700; line-height:1; padding:2px 5px; border-radius:8px; white-space:nowrap;
+}
+
 @media (max-width:720px){
   .hud{ flex-direction:column; align-items:stretch; gap:8px; padding:54px 12px 8px; }
   .hud-mid{ justify-content:space-between; }
@@ -669,7 +676,9 @@ body.cinematic-mode .cinematic-overlay{ display:flex; }
     <button class="overlay-close-x" id="btn-close-upgrades">&times;</button>
     <h2>Field Upgrades</h2>
     <div class="desc">Spend skill points earned from enemy kills on permanent campaign upgrades. Each is a one-time purchase.</div>
-    <div class="upgrades-list" id="upgrades-list"></div>
+    <div class="upgrades-scroll-body">
+      <div class="upgrades-list" id="upgrades-list"></div>
+    </div>
   </div>
 </div>
 
@@ -3086,6 +3095,11 @@ function buildCoverLockButtons(){
     btn.dataset.trench = i;
     btn.addEventListener('click', ()=> toggleCoverLock(i));
     container.appendChild(btn);
+
+    const badge = document.createElement('div');
+    badge.className = 'cover-capacity-badge';
+    badge.dataset.trenchCap = i;
+    container.appendChild(badge);
   });
   refreshCoverLockLabels();
 }
@@ -3110,6 +3124,13 @@ function refreshCoverLockLabels(){
       ? 'Locked — your squads will push past this position instead of garrisoning'
       : 'Unlocked — your squads may garrison here';
   });
+  Array.prototype.forEach.call(container.querySelectorAll('.cover-capacity-badge'), (badge)=>{
+    const i = parseInt(badge.dataset.trenchCap,10);
+    const tr = G.trenches[i];
+    if(!tr) return;
+    const occupied = tr.occupants ? tr.occupants.length : 0;
+    badge.textContent = occupied + '/' + tr.capacity;
+  });
 }
 
 function positionCoverLockButtons(w, groundY){
@@ -3120,7 +3141,17 @@ function positionCoverLockButtons(w, groundY){
     if(!tr) return;
     const x = laneToPx(tr.x, w);
     btn.style.left = x+'px';
-    btn.style.top = (groundY-58)+'px';
+    btn.style.top = (groundY-90)+'px';
+  });
+  Array.prototype.forEach.call(container.querySelectorAll('.cover-capacity-badge'), (badge)=>{
+    const i = parseInt(badge.dataset.trenchCap,10);
+    const tr = G.trenches[i];
+    if(!tr) return;
+    const x = laneToPx(tr.x, w);
+    badge.style.left = x+'px';
+    badge.style.top = (groundY-88)+'px';
+    const occupied = tr.occupants ? tr.occupants.length : 0;
+    badge.textContent = occupied + '/' + tr.capacity;
   });
 }
 
@@ -5036,6 +5067,9 @@ el('skill-badge').addEventListener('click', ()=>{
 });
 el('btn-close-upgrades').addEventListener('click', ()=>{
   el('overlay-upgrades').classList.remove('active');
+});
+el('overlay-upgrades').addEventListener('click', (e)=>{
+  if(e.target === el('overlay-upgrades')) el('overlay-upgrades').classList.remove('active');
 });
 
 el('btn-reset-progress').addEventListener('click', async ()=>{
