@@ -2224,6 +2224,7 @@ function aiMaybeSpawn(dt){
     if(G.waveCountdown<=0 && !G.waveStarted){
       G.waveStarted = true;
       showHint('Wave ' + (G.lsLevel+1) + ' incoming!');
+      if((G.lsLevel+1) % 10 === 0) spawnLastStandMiniBoss();
     }
     return;
   }
@@ -2327,6 +2328,7 @@ function fireWeapon(u, target, uDef){
     if(u.side==='enemy' && G.mission.mode==='laststand'){
       dmgMult *= lastStandEnemyDamageMult();
     }
+    if(u.dmgMult) dmgMult *= u.dmgMult;
     const dealt = Math.max(1, Math.round(uDef.dmg*dmgMult));
     target.hp -= dealt;
     spawnFloatText(target.x, '-'+dealt, '#ffb37a');
@@ -2429,6 +2431,55 @@ function smokeMissPenalty(u){
   return best;
 }
 
+const HQ_DEFENSE_X = 20;
+
+function updateHardenedCPDefense(dt){
+  if(!G.hqSlots || !G.hqSlots.length) return;
+  const hqEffRange = (1+lsRangeBonus());
+  G.hqSlots.forEach(slot=>{
+    const uDef = UNIT_TYPES[slot.type];
+    slot.atkTimer -= dt;
+    if(slot.atkTimer > 0) return;
+    let target=null, bestDist=Infinity;
+    for(const o of G.units){
+      if(o.side==='player' || o.hp<=0) continue;
+      const d = Math.abs(o.x-HQ_DEFENSE_X);
+      if(d<=uDef.range*hqEffRange && d<bestDist){ bestDist=d; target=o; }
+    }
+    if(target){
+      const virtualUnit = { side:'player', x:HQ_DEFENSE_X, type:slot.type };
+      fireWeapon(virtualUnit, target, uDef);
+      slot.atkTimer = effectiveAtkInterval(virtualUnit, uDef);
+    } else {
+      slot.atkTimer = 0.3;
+    }
+  });
+
+  if(G.hqMortarEnabled){
+    G.hqMortarTimer -= dt;
+    if(G.hqMortarTimer <= 0){
+      fireHqMortar();
+      G.hqMortarTimer = 20;
+    }
+  }
+}
+
+function fireHqMortar(){
+  const enemies = G.units.filter(u=>u.side==='enemy' && u.hp>0);
+  if(!enemies.length) return;
+  let target = enemies[0];
+  for(const e of enemies){ if(e.x < target.x) target = e; }
+  const rounds = 3;
+  const scatterRadius = 70;
+  const dmg = Math.round(35 * ((G.runMods && G.runMods.dmgMult) || 1));
+  for(let i=0;i<rounds;i++){
+    const offset = (Math.random()*2-1)*scatterRadius;
+    const landX = Math.max(20, Math.min(G.laneLength-20, target.x+offset));
+    G.mortarQueue.push({ x: landX, timer: 0.6 + i*0.25, dmg });
+  }
+  showHint('The command post opens fire with mortars!');
+}
+
 function updateAbilities(dt){
   if(G.abilityCooldowns.mortar>0) G.abilityCooldowns.mortar = Math.max(0, G.abilityCooldowns.mortar-dt);
   if(G.abilityCooldowns.smoke>0) G.abilityCooldowns.smoke = Math.max(0, G.abilityCooldowns.smoke-dt);
@@ -2466,6 +2517,7 @@ function step(dt){
   aiMaybeSpawn(dt);
   updateAmbient(dt);
   updateAbilities(dt);
+  if(G.mission.mode==='laststand') updateHardenedCPDefense(dt);
 
   const alive = G.units.filter(u=>u.hp>0);
 
@@ -2491,7 +2543,8 @@ function step(dt){
 
     const suppressBonus = (u.suppressed && u.type==='infantry') ? SUPPRESS_RANGE_BONUS : 0;
     const coverRangeBonus = (u.inTrench || u.sheltering) ? (u.rangeBonus||TRENCH_RANGE_BONUS) : 0;
-    const effRange = uDef.range + coverRangeBonus + suppressBonus;
+    const rangeMult = (u.side==='player' && G.mission.mode==='laststand') ? (1+lsRangeBonus()) : 1;
+    const effRange = uDef.range*rangeMult + coverRangeBonus + suppressBonus;
     let target=null, bestDist=Infinity;
     for(const o of alive){
       if(o.side===u.side || o.hp<=0) continue;
@@ -2576,7 +2629,7 @@ function step(dt){
       }
     }
 
-    const moveSpeed = (u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed;
+    const moveSpeed = ((u.suppressed && u.type==='infantry') ? uDef.speed*SUPPRESS_MOVE_MULT : uDef.speed) * (u.speedMult||1);
 
     if(u.side==='player'){
       if(currentPhaseType()==='demolition' && G.demoTarget && !G.demoTarget.destroyed && Math.abs(u.x-G.demoTarget.x) <= 36){
@@ -2589,9 +2642,9 @@ function step(dt){
       }
     } else {
       if(G.mission.mode==='escort' && G.convoy && !G.convoy.arrived && Math.abs(u.x-G.convoy.x) <= 30){
-        G.convoy.hp -= uDef.dmg*dt*1.4;
+        G.convoy.hp -= uDef.dmg*(u.dmgMult||1)*dt*1.4;
       } else if(u.x <= 40){
-        G.playerBase.hp -= uDef.dmg*dt*1.4;
+        G.playerBase.hp -= uDef.dmg*(u.dmgMult||1)*dt*1.4;
       } else {
         u.x -= moveSpeed*dt;
         if(u.type==='tank') updateTankMoveSound(u, dt);
@@ -3929,13 +3982,14 @@ function render(){
     const bounce = (G.celebrating && u.side==='player' && u.hp>0)
       ? -Math.abs(Math.sin(G.celebrateTime*4 + u.id))*7
       : 0;
+    const bossScale = u.isMiniBoss ? 1.35 : 1;
     if(u.inTrench){
       const tr = G.trenches.find(t=>t.occupants.includes(u.id));
       const spacing = tr ? Math.max(12,(tr.w||70)/4) : 14;
       const slotOffset = (u.trenchSlot!=null ? (u.trenchSlot-1)*spacing : 0);
-      drawUnitSprite(x+slotOffset, groundY-6+bounce, u, 0.85);
+      drawUnitSprite(x+slotOffset, groundY-6+bounce, u, 0.85*bossScale);
     } else {
-      drawUnitSprite(x, groundY-10+rowOffset(u.row)+bounce, u, rowScale(u.row));
+      drawUnitSprite(x, groundY-10+rowOffset(u.row)+bounce, u, rowScale(u.row)*bossScale);
     }
   }
 
@@ -4211,9 +4265,9 @@ const LS_PERM_UPGRADES = [
     { cost:40, desc:'Start every run with 50 supply banked.' },
   ]},
   { id:'hardenedCP', name:'Hardened Command Post', icon:'shield', tiers:[
-    { cost:18, desc:'+20% starting HQ health for every run.' },
-    { cost:27, desc:'+30% starting HQ health for every run.' },
-    { cost:40, desc:'+50% starting HQ health for every run.' },
+    { cost:18, desc:'The command post fires back — HQ now fires as if it were 2 Machine Gun Teams.' },
+    { cost:27, desc:'HQ now fires as if it were 4 Machine Gun Teams and 2 Snipers.' },
+    { cost:40, desc:'HQ now fires as if it were 6 Machine Gun Teams and 4 Snipers, and calls in a mortar barrage on the enemy line every 20 seconds.' },
   ]},
   { id:'fasterLearner', name:'Faster Learner', icon:'clock', tiers:[
     { cost:15, desc:'Each level costs 10% less experience than the last.' },
@@ -4223,6 +4277,13 @@ const LS_PERM_UPGRADES = [
   ]},
   { id:'deepReserves', name:'Deep Reserves', icon:'crate', tiers:[
     { cost:20, desc:'Removes the 220 supply cap during Last Stand runs.' },
+  ]},
+  { id:'rangeTraining', name:'Range Training', icon:'crosshair', tiers:[
+    { cost:15, desc:'+5% range for all your units.' },
+    { cost:20, desc:'+10% range for all your units.' },
+    { cost:25, desc:'+15% range for all your units.' },
+    { cost:32, desc:'+20% range for all your units.' },
+    { cost:40, desc:'+25% range for all your units.' },
   ]},
 ];
 
@@ -4245,14 +4306,18 @@ function lsHeadStartSupply(){
   const lvl = lsUpgradeLevel('headStart');
   return [0,20,30,50][Math.min(lvl,3)] || 0;
 }
-function lsHardenedCPMult(){
+function lsHqDefenseStats(){
   const lvl = lsUpgradeLevel('hardenedCP');
-  return [1,1.2,1.3,1.5][Math.min(lvl,3)] || 1;
+  if(lvl>=3) return { mg:6, sniper:4, mortar:true };
+  if(lvl===2) return { mg:4, sniper:2, mortar:false };
+  if(lvl===1) return { mg:2, sniper:0, mortar:false };
+  return { mg:0, sniper:0, mortar:false };
 }
 function lsDamageTrainingMult(){ return 1 + lsUpgradeLevel('damageTraining')*0.01; }
 function lsHpTrainingMult(){ return 1 + lsUpgradeLevel('hpTraining')*0.01; }
 function lsFireRateTrainingMult(){ return 1 - lsUpgradeLevel('fireRateTraining')*0.01; }
 function lsVeteranMult(){ return 1 + lsUpgradeLevel('veteran')*0.01; }
+function lsRangeBonus(){ return Math.min(0.5, lsUpgradeLevel('rangeTraining')*0.05); }
 
 async function loadLastStandStats(){
   try{
@@ -4448,7 +4513,9 @@ function lastStandIntensity(){
   const mult = (G.runMods && G.runMods.enemySpeedMult) || 1;
   const level = G.lsLevel || 0;
   const t = Math.max(0, G.elapsed)/60;
-  const base = 0.5 + level*0.4; // each wave cleared ramps the next wave up noticeably
+  const base = level < 10
+    ? 0.5 + level*0.2                     // waves 1-10: escalate at half the normal rate
+    : 0.5 + 10*0.2 + (level-10)*0.4;       // wave 11+: resume the normal escalation rate
   const drift = Math.min(0.4, t*0.04); // gentle continuous creep within a wave, kept small
   return Math.min(9, (base + drift) * mult * lsVeteranMult());
 }
@@ -4468,6 +4535,18 @@ function lastStandEnemyDamageMult(){
   return (1 + (G.lsLevel||0)*0.07) * lsVeteranMult(); // +7% enemy damage per wave cleared, plus Veteran
 }
 
+function spawnLastStandMiniBoss(){
+  const baseDef = UNIT_TYPES.tank;
+  const hp = Math.round(baseDef.hp * lastStandEnemyHpMult() * 2);
+  G.units.push({
+    id:G.nextUnitId++, side:'enemy', type:'tank', x:G.laneLength-26, hp, maxHp:hp, atkTimer:0,
+    row:1, inTrench:false, coverLock:0, hasStalled:false, stallTimer:0, suppressed:false, suppressTimer:0,
+    shotsInClip:0, sheltering:false, shelterTankId:null, shelterSlot:null, shelterLock:0, shelterIds:[],
+    speedMult:0.5, dmgMult:2, isMiniBoss:true
+  });
+  showHint('A heavily-armored unit has broken through — half speed, double strength.');
+}
+
 function makeLastStandMission(){
   const envKeys = Object.keys(ENV);
   const envKey = envKeys[Math.floor(Math.random()*envKeys.length)];
@@ -4479,7 +4558,7 @@ function makeLastStandMission(){
   return {
     id:'laststand', theater:'laststand', code:'Last Stand', date:'', place:'Unknown Front',
     mode:'laststand', laneLength:1000,
-    playerBaseHp: 220 * lsHardenedCPMult(),
+    playerBaseHp: 220,
     startSupply: lsHeadStartSupply(),
     supplyRate:0, enemySupplyRate:7, enemySpawnMin:1.0, enemySpawnMax:2.0,
     enemyComposition:{infantry:.3, mg:.25, sniper:.15, artillery:.15, tank:.15},
@@ -4496,6 +4575,12 @@ function beginLastStandRun(){
   G = makeGameState(mission);
   G.lsXP = 0;
   G.lsLevel = 0;
+  const hqStats = lsHqDefenseStats();
+  G.hqSlots = [];
+  for(let i=0;i<hqStats.mg;i++) G.hqSlots.push({ type:'mg', atkTimer: Math.random()*0.4 });
+  for(let i=0;i<hqStats.sniper;i++) G.hqSlots.push({ type:'sniper', atkTimer: Math.random()*0.4 });
+  G.hqMortarEnabled = hqStats.mortar;
+  G.hqMortarTimer = 20;
   G.lsXPCap = LS_XP_BASE_CAP;
   G.lsKills = 0;
   G.waveCountdown = LS_WAVE_PREP_TIME;
@@ -4756,6 +4841,7 @@ el('btn-ls-start-wave').addEventListener('click', ()=>{
     G.waveCountdown = 0;
     G.waveStarted = true;
     showHint('Wave ' + (G.lsLevel+1) + ' incoming!');
+    if((G.lsLevel+1) % 10 === 0) spawnLastStandMiniBoss();
   }
 });
 el('btn-ls-retry').addEventListener('click', ()=>{
